@@ -64,7 +64,7 @@ namespace Identity
             });
 
             // Add application services.
-            services.AddTransient<IEmailSender, AuthMessageSender>();
+            services.AddSingleton<IEmailSender>(new AuthMessageSender(Configuration));
             //services.AddTransient<ISmsSender, AuthMessageSender>();
         }
 

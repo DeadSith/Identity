@@ -12,6 +12,8 @@ using Identity.Models;
 using Identity.Models.AccountViewModels;
 using Identity.Services;
 
+//Todo: implement RequireConfirmation page
+
 namespace Identity.Controllers
 {
     [Authorize]
@@ -54,24 +56,19 @@ namespace Identity.Controllers
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
-                var user = await _userManager.FindByEmailAsync(model.Login);
-                Microsoft.AspNetCore.Identity.SignInResult result;
-                if (user != null)
-                {
-                    result =
+                var user = await _userManager.FindByEmailAsync(model.Login) ??
+                           await _userManager.FindByNameAsync(model.Login);
+                var result =
                         await
                             _signInManager.PasswordSignInAsync(user, model.Password, model.RememberMe,
                                 lockoutOnFailure: true);
-                }
-                else
-                {
-                    result =
-                        await
-                            _signInManager.PasswordSignInAsync(model.Login, model.Password, model.RememberMe,
-                                lockoutOnFailure: true);
-                }
                 if (result.Succeeded)
                 {
+                    if (user.EmailConfirmed != true)
+                    {
+                        ViewData["Unconfirmed"] = true;
+                        return View();
+                    }
                     _logger.LogInformation(1, "User logged in.");
                     return RedirectToLocal(returnUrl);
                 }
@@ -121,12 +118,11 @@ namespace Identity.Controllers
                 {
                     // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=532713
                     // Send an email with this link
-                    //var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    //var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
-                    //await _emailSender.SendEmailAsync(model.Email, "Confirm your account",
-                    //    $"Please confirm your account by clicking this link: <a href='{callbackUrl}'>link</a>");
-
-                    //await _signInManager.SignInAsync(user, isPersistent: false);
+                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                    var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
+                    await _emailSender.SendEmailAsync(model.Email, "Confirm your account",
+                        $"Please confirm your account by clicking this <a href='{callbackUrl}'>link</a>\n" +
+                        "\nIf link is not working, just copy and paste content of href");
                     _logger.LogInformation(3, "User created a new account with password.");
                     return RedirectToLocal(returnUrl);
                 }
@@ -136,6 +132,12 @@ namespace Identity.Controllers
             // If we got this far, something failed, redisplay form
             return View(model);
         }
+
+        /*[HttpGet]
+        public IActionResult ConfirmEmail(string returnUrl = "")
+        {
+            throw new NotImplementedException();
+        }*/
 
         //
         // POST: /Account/LogOff
@@ -184,7 +186,7 @@ namespace Identity.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = await _userManager.FindByNameAsync(model.Email);
+                var user = await _userManager.FindByEmailAsync(model.Email);
                 if (user == null || !(await _userManager.IsEmailConfirmedAsync(user)))
                 {
                     // Don't reveal that the user does not exist or is not confirmed
@@ -193,11 +195,11 @@ namespace Identity.Controllers
 
                 // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=532713
                 // Send an email with this link
-                //var code = await _userManager.GeneratePasswordResetTokenAsync(user);
-                //var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
-                //await _emailSender.SendEmailAsync(model.Email, "Reset Password",
-                //   $"Please reset your password by clicking here: <a href='{callbackUrl}'>link</a>");
-                //return View("ForgotPasswordConfirmation");
+                var code = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
+                await _emailSender.SendEmailAsync(model.Email, "Reset Password",
+                   $"Please reset your password by clicking here: <a href='{callbackUrl}'>link</a>");
+                return View("ForgotPasswordConfirmation");
             }
 
             // If we got this far, something failed, redisplay form
@@ -233,7 +235,7 @@ namespace Identity.Controllers
             {
                 return View(model);
             }
-            var user = await _userManager.FindByNameAsync(model.Email);
+            var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null)
             {
                 // Don't reveal that the user does not exist
