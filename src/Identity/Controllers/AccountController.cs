@@ -58,14 +58,16 @@ namespace Identity.Controllers
             {
                 var user = await _userManager.FindByEmailAsync(model.Login) ??
                            await _userManager.FindByNameAsync(model.Login);
+                
                 var result =
                         await
                             _signInManager.PasswordSignInAsync(user, model.Password, model.RememberMe,
                                 lockoutOnFailure: true);
                 if (result.Succeeded)
                 {
-                    if (user.EmailConfirmed != true)
+                    if (user?.EmailConfirmed != true)
                     {
+                        await _signInManager.SignOutAsync();
                         ViewData["Unconfirmed"] = true;
                         return View();
                     }
@@ -118,13 +120,9 @@ namespace Identity.Controllers
                 {
                     // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=532713
                     // Send an email with this link
-                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
-                    await _emailSender.SendEmailAsync(model.Email, "Confirm your account",
-                        $"Please confirm your account by clicking this <a href='{callbackUrl}'>link</a>\n" +
-                        "\nIf link is not working, just copy and paste content of href");
+                   SendEmailConfirmation(user);
                     _logger.LogInformation(3, "User created a new account with password.");
-                    return RedirectToLocal(returnUrl);
+                    return View("RequireEmail");
                 }
                 AddErrors(result);
             }
@@ -133,11 +131,43 @@ namespace Identity.Controllers
             return View(model);
         }
 
-        /*[HttpGet]
-        public IActionResult ConfirmEmail(string returnUrl = "")
+        private async void SendEmailConfirmation(ApplicationUser user)
         {
-            throw new NotImplementedException();
-        }*/
+            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
+            await _emailSender.SendEmailAsync(user.Email, "Confirm your account",
+                $"Please confirm your account by clicking this <a href='{callbackUrl}'>link</a>\n" +
+                "\nIf link is not working, just copy and paste content of href");
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult RequireEmail()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ResendEmail()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResendEmail(ResendEmailViewModel model)
+        {
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user?.EmailConfirmed == false)
+            {
+                ViewData["Resent"] = true;
+                SendEmailConfirmation(user);
+            }
+            ViewData["Resent"] = false;
+            return View("Login");
+        }
 
         //
         // POST: /Account/LogOff

@@ -12,10 +12,16 @@
 <div class="row">
     <div>
         <section>
-            @if (ViewData["Unconfirmed"]!=null&&(bool)ViewData["Unconfirmed"])
+            @if (ViewData["Resent"] != null)
+            {
+                <div class="alert alert-success">
+                    <strong>Success!</strong> The email with confirmation link was resent.
+                </div>
+            }
+            @if (ViewData["Unconfirmed"] != null && (bool) ViewData["Unconfirmed"])
             {
                 <div class="alert alert-danger">
-                    <strong>Error!</strong> Your email is not activated, please follow the link in your email, or click TODO:here to resend.
+                    <strong>Error!</strong> Your email is not activated, please follow the link in your email, or click <a asp-action="ResendEmail">here</a> to resend.
                 </div>
             }
         </section>
