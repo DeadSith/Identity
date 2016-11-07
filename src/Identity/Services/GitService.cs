@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Identity.Models;
 
 namespace Identity.Services
 {
@@ -16,7 +17,7 @@ namespace Identity.Services
 
         private string _gitServer { get; set; }
 
-        public void StartGit(string command, string directory)
+        public string StartGit(string command, string directory)
         {
             var gitInfo = new ProcessStartInfo
             {
@@ -33,6 +34,7 @@ namespace Identity.Services
             var stderr_str = gitProcess.StandardError.ReadToEnd();
             var stdout_str = gitProcess.StandardOutput.ReadToEnd();
             gitProcess.WaitForExit();
+            return stdout_str;
         }
 
         public void Upload()
@@ -51,6 +53,13 @@ namespace Identity.Services
         public void Clone()
         {
             StartGit(@" clone "+_gitServer+@":gitolite -admin", Directory.GetCurrentDirectory());
+        }
+
+        public GitCommit Info(string directory, string sha = "")
+        {
+            var result = StartGit(" log -1",directory);
+            //Todo: parse result
+            return new GitCommit();
         }
     }
 }
