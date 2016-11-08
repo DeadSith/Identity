@@ -15,7 +15,7 @@ namespace Identity.Services
             _gitServer = gitServer;
         }
 
-        private string _gitServer { get; set; }
+        private string _gitServer { get; }
 
         public string StartGit(string command, string directory)
         {
@@ -37,22 +37,22 @@ namespace Identity.Services
             return stdout_str;
         }
 
-        public void Upload()
+        public void Upload(string path)
         {
-            var directory = Directory.GetCurrentDirectory() + @"/gitolite-admin";
+            var directory = path + @"/gitolite-admin";
             StartGit(@"add .", directory);
-            StartGit(" commit -m '14' ", directory);
+            StartGit($" commit -m '{DateTime.Now}'", directory);
             StartGit(" push", directory);
         }
 
-        public void Pull()
+        public void Pull(string path)
         {
-            StartGit(" pull", Directory.GetCurrentDirectory() + @"/gitolite-admin");
+            StartGit(" pull", path + @"/gitolite-admin");
         }
 
-        public void Clone()
+        public void Clone(string path)
         {
-            StartGit(@" clone "+_gitServer+@":gitolite -admin", Directory.GetCurrentDirectory());
+            StartGit(@" clone "+_gitServer+@":gitolite-admin", path);
         }
 
         public GitCommit Info(string directory, string sha = "")

@@ -22,6 +22,15 @@
             }
         </dd>
         <dt>
+            Upload your SHA key
+        </dt>
+        <dd>
+            <form method="post" asp-action="Index" asp-controller="Manage" enctype="multipart/form-data">
+                <input type="file" name="files"/>
+                <input type="submit" value="Upload" />
+            </form>
+        </dd>
+        <dt>
             Some other Settings
         </dt>
         <dd>

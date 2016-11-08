@@ -8,9 +8,9 @@ namespace Identity.Services
 {
     public interface IGitService
     {
-        void Upload(); 
-        void Pull();
-        void Clone();
+        void Upload(string path); 
+        void Pull(string path);
+        void Clone(string path);
         GitCommit Info(string directory, string sha="");
     }
 }

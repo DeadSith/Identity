@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Identity.Data;
@@ -10,6 +11,8 @@ using Microsoft.Extensions.Logging;
 using Identity.Models;
 using Identity.Models.ManageViewModels;
 using Identity.Services;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 
 namespace Identity.Controllers
 {
@@ -21,20 +24,26 @@ namespace Identity.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IEmailSender _emailSender;
         private readonly ILogger _logger;
+        private readonly string _gitUsersPath;
+        private readonly IHostingEnvironment _environment;
+        private readonly IGitService _gitService;
 
         public ManageController(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         IEmailSender emailSender,
-        //ISmsSender smsSender,
         ILoggerFactory loggerFactory,
-        ApplicationDbContext context)
+        ApplicationDbContext context,
+        IHostingEnvironment environment,
+        IGitService gitService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
             _logger = loggerFactory.CreateLogger<ManageController>();
             _context = context;
+            _gitUsersPath = environment.WebRootPath+ @"/gitolite-admin/keydir";
+            _gitService = gitService;
         }
 
         //
@@ -63,7 +72,35 @@ namespace Identity.Controllers
             };
             return View(model);
         }
-        
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Index(ICollection<IFormFile> files)
+        {
+            var file = files.First();
+            var user = await _userManager.GetUserAsync(HttpContext.User);
+            if (!String.Equals(Path.GetExtension(file.FileName), ".pub"))
+            {
+                ModelState.AddModelError(string.Empty,"You should upload your public key with .pub extension");
+            }
+            else
+            {
+                var lockObj = new object();
+                lock (lockObj)
+                {
+                    if (!Directory.Exists(_gitUsersPath))
+                        _gitService.Clone(_environment.WebRootPath);
+                    _gitService.Pull(_environment.WebRootPath);
+                    using (var fileStream = new FileStream(Path.Combine(_gitUsersPath,user.UserName.ToLower()+".pub"),FileMode.Create))
+                    {
+                        file.CopyTo(fileStream);
+                    }
+                    _gitService.Upload(_environment.WebRootPath);
+                }
+            }
+            return View();
+        }
+
         //
         // GET: /Manage/ChangePassword
         [HttpGet]
