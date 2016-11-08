@@ -1,4 +1,4 @@
-﻿@model IndexViewModel
+﻿@model Identity.Models.ManageViewModels.IndexViewModel
 @{
     ViewData["Title"] = "Manage your account";
 }
@@ -14,11 +14,11 @@
         <dd>
             @if (Model.HasPassword)
             {
-                <a asp-controller="Manage" asp-action="ChangePassword" class="btn-bracketed">Change</a>
+                <a asp-controller="Manage" asp-action="ChangePassword" class="btn btn-primary">Change</a>
             }
             else
             {
-                <a asp-controller="Manage" asp-action="SetPassword" class="btn-bracketed">Create</a>
+                <a asp-controller="Manage" asp-action="SetPassword" class="btn btn-primary">Create</a>
             }
         </dd>
         <dt>
@@ -26,8 +26,8 @@
         </dt>
         <dd>
             <form method="post" asp-action="Index" asp-controller="Manage" enctype="multipart/form-data">
-                <input type="file" name="files"/>
-                <input type="submit" value="Upload" />
+                <input type="file" class="btn" name="files"/>
+                <input type="submit" class="btn btn-primary" value="Upload" />
             </form>
         </dd>
         <dt>

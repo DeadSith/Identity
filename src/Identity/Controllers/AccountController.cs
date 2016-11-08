@@ -62,7 +62,7 @@ namespace Identity.Controllers
                 {
                     ModelState.AddModelError(string.Empty, "Invalid login attempt.");
                     return View(model);
-                }
+                }                
                 var result =
                         await
                             _signInManager.PasswordSignInAsync(user, model.Password, model.RememberMe,

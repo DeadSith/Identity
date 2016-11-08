@@ -1,7 +1,29 @@
-﻿@{
+﻿@model Identity.Models.HomeViewModels.IndexViewModel
+@inject SignInManager<ApplicationUser> SignInManager
+@{
     ViewData["Title"] = "Home Page";
 }
 
-<div>
-    <h1>Index</h1>
-</div>
+
+@if(SignInManager.IsSignedIn(User))
+{
+    <div>
+        <h1>Your repos:</h1>
+        <ul>
+        @foreach(var repo in Model.Repos)
+        {
+            <li>
+            <a href="/@repo.Author/@repo.Name">
+                @repo.Name
+            </a>
+            </li>
+        }
+        </ul>
+    </div>
+}
+else
+{
+    <div>
+        Sign in to view your repos.
+    </div>
+}

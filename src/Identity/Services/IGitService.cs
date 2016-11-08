@@ -12,5 +12,7 @@ namespace Identity.Services
         void Pull(string path);
         void Clone(string path);
         GitCommit Info(string directory, string sha="");
+
+        List<string> GetAllRepos();
     }
 }

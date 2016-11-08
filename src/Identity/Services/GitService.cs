@@ -41,7 +41,7 @@ namespace Identity.Services
         {
             var directory = path + @"/gitolite-admin";
             StartGit(@"add .", directory);
-            StartGit($" commit -m '{DateTime.Now}'", directory);
+            StartGit(@" commit -m '"+DateTime.Now.ToString("ddMMyyyyHHmm")+@"'", directory);
             StartGit(" push", directory);
         }
 
@@ -59,7 +59,27 @@ namespace Identity.Services
         {
             var result = StartGit(" log -1",directory);
             //Todo: parse result
+            throw new NotImplementedException();
             return new GitCommit();
+        }
+
+        public List<string> GetAllRepos()
+        {
+            var sshInfo = new ProcessStartInfo
+            {
+                CreateNoWindow = true,
+                Arguments = @" git@acer info",
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                FileName = @"/usr/bin/ssh"
+            };
+            var sshProcess = new Process {StartInfo = sshInfo};
+            sshProcess.Start();
+            var stderr_str = sshProcess.StandardError.ReadToEnd();
+            var stdout_str = sshProcess.StandardOutput.ReadToEnd();
+            sshProcess.WaitForExit();
+            return stdout_str.Split('\n').ToList();
         }
     }
 }

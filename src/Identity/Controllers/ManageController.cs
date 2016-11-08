@@ -44,6 +44,7 @@ namespace Identity.Controllers
             _context = context;
             _gitUsersPath = environment.WebRootPath+ @"/gitolite-admin/keydir";
             _gitService = gitService;
+            _environment = environment;
         }
 
         //
@@ -76,7 +77,7 @@ namespace Identity.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Index(ICollection<IFormFile> files)
-        {
+        {            
             var file = files.First();
             var user = await _userManager.GetUserAsync(HttpContext.User);
             if (!String.Equals(Path.GetExtension(file.FileName), ".pub"))
@@ -86,7 +87,7 @@ namespace Identity.Controllers
             else
             {
                 var lockObj = new object();
-                lock (lockObj)
+                lock (lockObj)                
                 {
                     if (!Directory.Exists(_gitUsersPath))
                         _gitService.Clone(_environment.WebRootPath);
@@ -95,10 +96,21 @@ namespace Identity.Controllers
                     {
                         file.CopyTo(fileStream);
                     }
-                    _gitService.Upload(_environment.WebRootPath);
+                    _gitService.Upload(_environment.WebRootPath);                    
                 }
+                ViewData["StatusMessage"]="Your SHA was successfully updated!";
+                user.ShaUploaded = true;
+                await _userManager.UpdateAsync(user);
             }
-            return View();
+            var model = new IndexViewModel
+            {
+                HasPassword = await _userManager.HasPasswordAsync(user),
+                PhoneNumber = await _userManager.GetPhoneNumberAsync(user),
+                TwoFactor = await _userManager.GetTwoFactorEnabledAsync(user),
+                Logins = await _userManager.GetLoginsAsync(user),
+                BrowserRemembered = await _signInManager.IsTwoFactorClientRememberedAsync(user)
+            };
+            return View(model);
         }
 
         //
