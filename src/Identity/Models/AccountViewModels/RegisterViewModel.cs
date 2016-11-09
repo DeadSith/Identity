@@ -11,6 +11,7 @@ namespace Identity.Models.AccountViewModels
 
         [Required]
         [StringLength(50, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+        [RegularExpression(@"^[a-zA-Z][a-zA-Z0-9]+",ErrorMessage = "Username can contain only English letters and numbres")]
         [Display(Name = "Username")]
         public string Username { get; set; }
 

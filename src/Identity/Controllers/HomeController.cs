@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Identity.Controllers
 {
@@ -68,6 +69,23 @@ namespace Identity.Controllers
         public IActionResult Repo(string userName, string repoName, string path)
         {
             throw new NotImplementedException();
+        }
+
+        [HttpGet]
+        [Authorize]
+        public IActionResult AddNewRepo()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddNewRepo(AddNewRepoViewModel model)
+        {
+            ViewData["Success"] = "Repository was successfully created";
+            ViewData["Error"] = "Something went wrong";
+            return View("Index");
         }
 
         public IActionResult Error()

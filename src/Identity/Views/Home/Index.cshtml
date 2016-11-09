@@ -6,16 +6,44 @@
 
 @if (SignInManager.IsSignedIn(User))
 {
+    if (ViewData["Success"] != null)
+    {
+        <div class="alert alert-success">
+            @ViewData["Success"]
+        </div>
+    }
+    if (ViewData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+            @ViewData["Error"]
+        </div>
+    }
     <div>
         <h1>Your repos:</h1>
-        <ul>
-            @foreach (var repo in Model.Repos)
+        <ul class="list-group">
+            <li>
+                <a asp-action="AddNewRepo" class="btn btn-primary">
+                    Add new repository
+                </a>
+            </li>
+            @if (Model?.Repos != null)
+            {
+                foreach (var repo in Model.Repos)
+                {
+                    <li>
+                        <a href="/@repo.Author.UserName/@repo.RepoName" class="btn btn-default">
+                            @repo.RepoName
+                        </a>
+                    </li>
+                }
+            }
+            else
             {
                 <li>
-                    <a href="/@repo.Author.UserName/@repo.RepoName">
-                        @repo.RepoName
-            </a>
-        </li>
+                    <h4>
+                        You have no repositories, go create some!
+                    </h4>
+                </li>
             }
         </ul>
     </div>
@@ -23,6 +51,6 @@
 else
 {
     <div>
-        Sign in to view your repos.
+        <h1>Sign in to view your repos.</h1>
     </div>
 }
