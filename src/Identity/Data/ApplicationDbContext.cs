@@ -1,15 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Identity.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Identity.Models;
 
 namespace Identity.Data
 {
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
+        public DbSet<GitRepo> Repos { get; set; }
+
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
@@ -18,9 +16,13 @@ namespace Identity.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-            // Customize the ASP.NET Identity model and override the defaults if needed.
-            // For example, you can rename the ASP.NET Identity table names and more.
-            // Add your customizations after calling base.OnModelCreating(builder);
+            /*builder.Entity<GitRepo>()
+                .HasOne(p => p.Author)
+                .WithMany(b => b.Repos);*/
+            builder.Entity<ApplicationUser>()
+                .HasMany(u => u.Repos)
+                .WithOne(r => r.Author)
+                .IsRequired();
         }
     }
 }

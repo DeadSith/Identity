@@ -1,18 +1,18 @@
-﻿using System;
+﻿using Identity.Data;
+using Identity.Models;
+using Identity.Models.ManageViewModels;
+using Identity.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Identity.Data;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Identity.Models;
-using Identity.Models.ManageViewModels;
-using Identity.Services;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 
 namespace Identity.Controllers
 {
@@ -42,7 +42,7 @@ namespace Identity.Controllers
             _emailSender = emailSender;
             _logger = loggerFactory.CreateLogger<ManageController>();
             _context = context;
-            _gitUsersPath = environment.WebRootPath+ @"/gitolite-admin/keydir";
+            _gitUsersPath = environment.WebRootPath + @"/gitolite-admin/keydir";
             _gitService = gitService;
             _environment = environment;
         }
@@ -77,28 +77,28 @@ namespace Identity.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Index(ICollection<IFormFile> files)
-        {            
+        {
             var file = files.First();
             var user = await _userManager.GetUserAsync(HttpContext.User);
             if (!String.Equals(Path.GetExtension(file.FileName), ".pub"))
             {
-                ModelState.AddModelError(string.Empty,"You should upload your public key with .pub extension");
+                ModelState.AddModelError(string.Empty, "You should upload your public key with .pub extension");
             }
             else
             {
                 var lockObj = new object();
-                lock (lockObj)                
+                lock (lockObj)
                 {
                     if (!Directory.Exists(_gitUsersPath))
                         _gitService.Clone(_environment.WebRootPath);
                     _gitService.Pull(_environment.WebRootPath);
-                    using (var fileStream = new FileStream(Path.Combine(_gitUsersPath,user.UserName.ToLower()+".pub"),FileMode.Create))
+                    using (var fileStream = new FileStream(Path.Combine(_gitUsersPath, user.UserName.ToLower() + ".pub"), FileMode.Create))
                     {
                         file.CopyTo(fileStream);
                     }
-                    _gitService.Upload(_environment.WebRootPath);                    
+                    _gitService.Upload(_environment.WebRootPath);
                 }
-                ViewData["StatusMessage"]="Your SHA was successfully updated!";
+                ViewData["StatusMessage"] = "Your SHA was successfully updated!";
                 user.ShaUploaded = true;
                 await _userManager.UpdateAsync(user);
             }
@@ -181,7 +181,6 @@ namespace Identity.Controllers
             return RedirectToAction(nameof(Index), new { Message = ManageMessageId.Error });
         }
 
-       
         #region Helpers
 
         private void AddErrors(IdentityResult result)
@@ -209,6 +208,6 @@ namespace Identity.Controllers
             return _userManager.GetUserAsync(HttpContext.User);
         }
 
-        #endregion
+        #endregion Helpers
     }
 }

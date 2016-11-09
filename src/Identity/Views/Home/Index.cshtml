@@ -4,20 +4,19 @@
     ViewData["Title"] = "Home Page";
 }
 
-
-@if(SignInManager.IsSignedIn(User))
+@if (SignInManager.IsSignedIn(User))
 {
     <div>
         <h1>Your repos:</h1>
         <ul>
-        @foreach(var repo in Model.Repos)
-        {
-            <li>
-            <a href="/@repo.Author/@repo.Name">
-                @repo.Name
+            @foreach (var repo in Model.Repos)
+            {
+                <li>
+                    <a href="/@repo.Author.UserName/@repo.RepoName">
+                        @repo.RepoName
             </a>
-            </li>
-        }
+        </li>
+            }
         </ul>
     </div>
 }

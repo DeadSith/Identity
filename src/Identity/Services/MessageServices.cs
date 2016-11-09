@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using MailKit.Net.Smtp;
-using MimeKit;
-using MailKit.Security;
+﻿using MailKit.Net.Smtp;
 using Microsoft.Extensions.Configuration;
-
+using MimeKit;
+using System.Threading.Tasks;
 
 namespace Identity.Services
 {
@@ -20,8 +15,8 @@ namespace Identity.Services
 
         public AuthMessageSender(IConfigurationRoot config)
         {
-            _login = (string) config.GetSection("EmailSettings")["Login"];
-            _password = (string) config.GetSection("EmailSettings")["Password"];
+            _login = (string)config.GetSection("EmailSettings")["Login"];
+            _password = (string)config.GetSection("EmailSettings")["Password"];
         }
 
         public async Task SendEmailAsync(string email, string subject, string message)
@@ -33,7 +28,7 @@ namespace Identity.Services
             emailMessage.Body = new TextPart("html") { Text = message };
             using (var client = new SmtpClient())
             {
-                await client.ConnectAsync("in-v3.mailjet.com",587);
+                await client.ConnectAsync("in-v3.mailjet.com", 587);
                 await client.AuthenticateAsync(_login, _password);
                 await client.SendAsync(emailMessage).ConfigureAwait(false);
                 await client.DisconnectAsync(true).ConfigureAwait(false);

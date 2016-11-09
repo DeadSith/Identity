@@ -1,14 +1,12 @@
-﻿using System;
+﻿using Identity.Models;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
-using Identity.Models;
 
 namespace Identity.Services
 {
-    public class GitService:IGitService
+    public class GitService : IGitService
     {
         public GitService(string gitServer)
         {
@@ -29,7 +27,7 @@ namespace Identity.Services
                 RedirectStandardOutput = true,
                 FileName = @"/usr/bin/git"
             };
-            var gitProcess = new Process {StartInfo = gitInfo};
+            var gitProcess = new Process { StartInfo = gitInfo };
             gitProcess.Start();
             var stderr_str = gitProcess.StandardError.ReadToEnd();
             var stdout_str = gitProcess.StandardOutput.ReadToEnd();
@@ -41,7 +39,7 @@ namespace Identity.Services
         {
             var directory = path + @"/gitolite-admin";
             StartGit(@"add .", directory);
-            StartGit(@" commit -m '"+DateTime.Now.ToString("ddMMyyyyHHmm")+@"'", directory);
+            StartGit(@" commit -m '" + DateTime.Now.ToString("ddMMyyyyHHmm") + @"'", directory);
             StartGit(" push", directory);
         }
 
@@ -52,12 +50,12 @@ namespace Identity.Services
 
         public void Clone(string path)
         {
-            StartGit(@" clone "+_gitServer+@":gitolite-admin", path);
+            StartGit(@" clone " + _gitServer + @":gitolite-admin", path);
         }
 
         public GitCommit Info(string directory, string sha = "")
         {
-            var result = StartGit(" log -1",directory);
+            var result = StartGit(" log -1", directory);
             //Todo: parse result
             throw new NotImplementedException();
             return new GitCommit();
@@ -74,7 +72,7 @@ namespace Identity.Services
                 RedirectStandardOutput = true,
                 FileName = @"/usr/bin/ssh"
             };
-            var sshProcess = new Process {StartInfo = sshInfo};
+            var sshProcess = new Process { StartInfo = sshInfo };
             sshProcess.Start();
             var stderr_str = sshProcess.StandardError.ReadToEnd();
             var stdout_str = sshProcess.StandardOutput.ReadToEnd();

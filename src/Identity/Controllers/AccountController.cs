@@ -1,16 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using Identity.Data;
+﻿using Identity.Models;
+using Identity.Models.AccountViewModels;
+using Identity.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Identity.Models;
-using Identity.Models.AccountViewModels;
-using Identity.Services;
+using System;
+using System.Threading.Tasks;
 
 //Todo: implement RequireConfirmation page
 
@@ -62,7 +58,7 @@ namespace Identity.Controllers
                 {
                     ModelState.AddModelError(string.Empty, "Invalid login attempt.");
                     return View(model);
-                }                
+                }
                 var result =
                         await
                             _signInManager.PasswordSignInAsync(user, model.Password, model.RememberMe,
@@ -320,6 +316,6 @@ namespace Identity.Controllers
             }
         }
 
-        #endregion
+        #endregion Helpers
     }
 }

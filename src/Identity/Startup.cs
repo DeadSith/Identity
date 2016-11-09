@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Identity.Data;
+using Identity.Models;
+using Identity.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -9,9 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Identity.Data;
-using Identity.Models;
-using Identity.Services;
+using System;
 
 namespace Identity
 {
@@ -23,7 +20,7 @@ namespace Identity
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
-                .AddJsonFile("dbsettings.json",optional:false, reloadOnChange:true);
+                .AddJsonFile("dbsettings.json", optional: false, reloadOnChange: true);
 
             if (env.IsDevelopment())
             {
@@ -94,6 +91,10 @@ namespace Identity
                 routes.MapRoute(
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
+                routes.MapRoute(
+                    name: "RepoView",
+                    template: "{userName}/{repoName}/{*path}",
+                    defaults: new { controller = "Home", action = "Repo" });
             });
         }
     }
