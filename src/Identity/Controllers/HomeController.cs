@@ -27,12 +27,14 @@ namespace Identity.Controllers
         public HomeController(IGitService gitService,
             UserManager<ApplicationUser> manager,
             SignInManager<ApplicationUser> signManager,
-            ApplicationDbContext context)
+            ApplicationDbContext context,
+            IHostingEnvironment environment)
         {
             _gitService = gitService;
             _userManager = manager;
             _context = context;
             _signInManager = signManager;
+            _environment = environment;
         }
 
         private List<string> GetGitoliteRepos()
@@ -67,9 +69,28 @@ namespace Identity.Controllers
         }
 
         [HttpGet]
-        public IActionResult Repo(string userName, string repoName, string path)
+        public IActionResult RepoView(string userName, string repoName, string path)
         {
-            throw new NotImplementedException();
+            var model = new RepoViewViewModel();
+            model.RepoRootPath = $"/{userName}/{repoName}";
+            //Todo: read content from repository
+            model.InnerContent = new List<string>
+            {
+                "test1",
+                "test2",
+                "test3"
+            };
+            model.Path = new List<string>(new []{ userName, repoName});
+            if (!String.IsNullOrWhiteSpace(path))
+            {
+                model.Path.AddRange(path.Split('/'));
+                model.FullPath = $"/{userName}/{repoName}/{path}";
+            }
+            else
+            {
+                model.FullPath = $"/{userName}/{repoName}";
+            }
+            return View(model);
         }
 
         [HttpGet]

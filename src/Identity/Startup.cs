@@ -94,7 +94,7 @@ namespace Identity
                 routes.MapRoute(
                     name: "RepoView",
                     template: "{userName}/{repoName}/{*path}",
-                    defaults: new { controller = "Home", action = "Repo" });
+                    defaults: new { controller = "Home", action = "RepoView" });
             });
         }
     }
