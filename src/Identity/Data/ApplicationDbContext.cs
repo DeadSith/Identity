@@ -16,9 +16,6 @@ namespace Identity.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-            /*builder.Entity<GitRepo>()
-                .HasOne(p => p.Author)
-                .WithMany(b => b.Repos);*/
             builder.Entity<ApplicationUser>()
                 .HasMany(u => u.Repos)
                 .WithOne(r => r.Author)

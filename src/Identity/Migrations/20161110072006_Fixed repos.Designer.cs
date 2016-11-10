@@ -8,9 +8,10 @@ using Identity.Data;
 namespace Identity.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20161110072006_Fixed repos")]
+    partial class Fixedrepos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.0.0-rtm-21431");
@@ -68,16 +69,14 @@ namespace Identity.Migrations
 
             modelBuilder.Entity("Identity.Models.GitRepo", b =>
                 {
-                    b.Property<string>("RepoKey");
+                    b.Property<string>("RepoName");
 
                     b.Property<string>("AuthorId")
                         .IsRequired();
 
                     b.Property<bool>("IsPublic");
 
-                    b.Property<string>("RepoName");
-
-                    b.HasKey("RepoKey");
+                    b.HasKey("RepoName");
 
                     b.HasIndex("AuthorId");
 

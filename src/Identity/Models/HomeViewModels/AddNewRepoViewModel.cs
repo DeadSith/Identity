@@ -9,7 +9,7 @@ namespace Identity.Models.HomeViewModels
         [StringLength(30, MinimumLength = 5, ErrorMessage = "Name should be 5-30 characters long")]
         [Display(Name = "Repository Name")]
         public string RepoName { get; set; }
-        [Display(Name = "Is this repository public ?")]
+        [Display(Name = "Is repository public?")]
         public bool IsPublic { get; set; }
     }
 }

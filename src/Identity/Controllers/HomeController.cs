@@ -7,10 +7,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Identity.Controllers
 {
@@ -20,6 +22,7 @@ namespace Identity.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IHostingEnvironment _environment;
 
         public HomeController(IGitService gitService,
             UserManager<ApplicationUser> manager,
@@ -50,7 +53,6 @@ namespace Identity.Controllers
         {
             if (!_signInManager.IsSignedIn(HttpContext.User))
                 return View();
-            var model = new IndexViewModel();
             var user = await _userManager.GetUserAsync(HttpContext.User);
             /* _context.Repos.Add(new GitRepo
              {
@@ -61,8 +63,7 @@ namespace Identity.Controllers
              });
              _context.SaveChanges();*/
             var fixedUser = _context.Users.Include(u => u.Repos).First(u => String.Equals(u.Id, user.Id));
-            model.Repos = fixedUser.Repos;
-            return View(model);
+            return View(fixedUser);
         }
 
         [HttpGet]
@@ -85,12 +86,41 @@ namespace Identity.Controllers
         {
             ViewData["Success"] = "Repository was successfully created";
             ViewData["Error"] = "Something went wrong";
-            return View("Index");
+            if (!_signInManager.IsSignedIn(HttpContext.User))
+                return View("Index");
+            var user = await _userManager.GetUserAsync(HttpContext.User);
+            var fixedUser = _context.Users.Include(u => u.Repos).First(u => String.Equals(u.Id, user.Id));
+            AddRepo(fixedUser, model.RepoName,model.IsPublic);
+            return View("Index",fixedUser);
         }
 
         public IActionResult Error()
         {
             return View();
+        }
+
+        private void AddRepo(ApplicationUser user, string repositoryName,bool isPublic)
+        {
+            _context.Repos.Add(
+                new GitRepo
+                {
+                    Author = user,
+                    IsPublic = isPublic,
+                    RepoName = repositoryName,
+                    RepoKey = Guid.NewGuid().ToString()
+                });
+            _context.SaveChanges();
+            if (!Directory.Exists(_environment.WebRootPath+@"/gitolite-admin"))
+                _gitService.Clone(_environment.WebRootPath);
+            _gitService.Pull(_environment.WebRootPath);
+            var configPath = _environment.WebRootPath + @"/gitolite-admin/conf/" + user.UserName.ToLower();
+            if (!System.IO.File.Exists(configPath))
+                System.IO.File.Create(configPath);
+            using (var sw = System.IO.File.AppendText(configPath))
+            {
+                sw.WriteLine($"repo {repositoryName}");
+                sw.WriteLine($"   RW+\t=\t{user.UserName.ToLower()}");
+            }
         }
     }
 }
