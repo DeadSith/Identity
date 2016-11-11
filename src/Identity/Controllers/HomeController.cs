@@ -68,12 +68,22 @@ namespace Identity.Controllers
             return View(fixedUser);
         }
 
+        public async Task<IActionResult> ClearRepos()
+        {
+            var user = await _userManager.GetUserAsync(HttpContext.User);
+            var fixedUser = _context.Users.Include(u => u.Repos).First(u => String.Equals(u.Id, user.Id));
+            fixedUser.Repos.Clear();
+            _context.SaveChanges();   
+            return RedirectToAction("Index");
+        }
+
         [HttpGet]
         public IActionResult RepoView(string userName, string repoName, string path)
         {
             var model = new RepoViewViewModel();
             model.RepoRootPath = $"/{userName}/{repoName}";
             //Todo: read content from repository
+            //Git clone, then git pull, then list files
             model.InnerContent = new List<string>
             {
                 "test1",
@@ -112,7 +122,7 @@ namespace Identity.Controllers
             var user = await _userManager.GetUserAsync(HttpContext.User);
             var fixedUser = _context.Users.Include(u => u.Repos).First(u => String.Equals(u.Id, user.Id));
             AddRepo(fixedUser, model.RepoName,model.IsPublic);
-            return View("Index",fixedUser);
+            return RedirectToAction("Index");
         }
 
         public IActionResult Error()
@@ -134,14 +144,16 @@ namespace Identity.Controllers
             if (!Directory.Exists(_environment.WebRootPath+@"/gitolite-admin"))
                 _gitService.Clone(_environment.WebRootPath);
             _gitService.Pull(_environment.WebRootPath);
-            var configPath = _environment.WebRootPath + @"/gitolite-admin/conf/" + user.UserName.ToLower();
+            var configPath = _environment.WebRootPath + @"/gitolite-admin/conf/" + user.UserName.ToLower()+".conf";
             if (!System.IO.File.Exists(configPath))
                 System.IO.File.Create(configPath);
-            using (var sw = System.IO.File.AppendText(configPath))
+            var stream = System.IO.File.Open(configPath,FileMode.Append);
+            using (var sw = new StreamWriter(stream))
             {
-                sw.WriteLine($"repo {repositoryName}");
+                sw.WriteLine($"repo {user.UserName.ToLower()}-{repositoryName.ToLower()}");
                 sw.WriteLine($"   RW+\t=\t{user.UserName.ToLower()}");
             }
+            _gitService.Upload(_environment.WebRootPath);
         }
     }
 }

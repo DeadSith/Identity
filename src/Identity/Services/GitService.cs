@@ -31,6 +31,10 @@ namespace Identity.Services
             gitProcess.Start();
             var stderr_str = gitProcess.StandardError.ReadToEnd();
             var stdout_str = gitProcess.StandardOutput.ReadToEnd();
+            Console.WriteLine();
+            Console.WriteLine(stderr_str);
+            Console.WriteLine(stdout_str);
+            Console.WriteLine();
             gitProcess.WaitForExit();
             return stdout_str;
         }
