@@ -95,12 +95,27 @@ namespace Identity.Controllers
             var repoDirectory = $"{_environment.WebRootPath}/Repos/{fullRepoName}/{path}";
             if (!Directory.Exists(repoDirectory))
                 RedirectToAction("Error");
+            var content = Directory.GetDirectories(repoDirectory);
             var model = new RepoViewViewModel
             {
                 RepoRootPath = $"/{userName}/{repoName}",
-                InnerContent = Directory.GetFileSystemEntries(repoDirectory).ToList(),
+                InnerFolders = new List<string>(),
+                InnerFiles = new List<string>(),
                 Path = new List<string>(new[] {userName, repoName})
             };
+            for(var i = 0;i<content.Length;i++)
+            {
+                var last = content[i].Split('/').Last();
+                if(!String.Equals(last,".git"))
+                    model.InnerFolders.Add(last);
+            }
+            content = Directory.GetFiles(repoDirectory);
+            for(var i = 0;i<content.Length;i++)
+            {
+                var last = content[i].Split('/').Last();
+                if(!String.Equals(last,".git"))
+                    model.InnerFiles.Add(last);
+            }
             if (!String.IsNullOrWhiteSpace(path))
             {
                 model.Path.AddRange(path.Split('/'));

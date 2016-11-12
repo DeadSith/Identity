@@ -16,7 +16,7 @@
             <ul class="nav navbar-nav">
                 @for (var i = 2; i < Model.Path.Count; i++)
                 {
-                    var path = new StringBuilder("/");
+                    var path = new StringBuilder($"{Model.RepoRootPath}/");
                     for (var j = 2; j <= i; j++)
                     {
                         path.Append(Model.Path[j] + "/");
@@ -41,10 +41,17 @@
 </h4>
 <br /><br /><br />
 <div class="list-group">
-    @foreach (var element in Model.InnerContent)
+    @foreach (var element in Model.InnerFolders)
     {
         var path = $"{Model.FullPath}/{element}";
-        <a class="list-group-item" href="@path">
+        <a class="list-group-item list-group-item-info" href="@path">
+            @element
+        </a>
+    }
+    @foreach (var element in Model.InnerFiles)
+    {
+        var path = $"{Model.FullPath}/{element}";
+        <a class="list-group-item list-group-item-success disabled" href="@path">
             @element
         </a>
     }
