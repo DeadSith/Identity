@@ -98,7 +98,7 @@ namespace Identity.Controllers
             var model = new RepoViewViewModel
             {
                 RepoRootPath = $"/{userName}/{repoName}",
-                InnerContent = Directory.GetFiles(repoDirectory).ToList(),
+                InnerContent = Directory.GetFileSystemEntries(repoDirectory).ToList(),
                 Path = new List<string>(new[] {userName, repoName})
             };
             if (!String.IsNullOrWhiteSpace(path))
