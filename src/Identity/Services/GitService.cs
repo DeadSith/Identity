@@ -47,14 +47,24 @@ namespace Identity.Services
             StartGit(" push", directory);
         }
 
-        public void Pull(string path)
+        public void PullMaster(string path)
         {
             StartGit(" pull", path + @"/gitolite-admin");
         }
 
-        public void Clone(string path)
+        public void CloneMaster(string path)
         {
             StartGit(@" clone " + _gitServer + @":gitolite-admin", path);
+        }
+
+        public void Clone(string path, string repoName)
+        {
+            StartGit(@" clone " + _gitServer + $":{repoName}", path);
+        }
+
+        public void Pull(string path, string repoName)
+        {
+            StartGit(" pull", path + $"/{repoName}");
         }
 
         public GitCommit Info(string directory, string sha = "")

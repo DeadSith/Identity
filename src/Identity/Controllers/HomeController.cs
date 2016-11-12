@@ -80,17 +80,27 @@ namespace Identity.Controllers
         [HttpGet]
         public IActionResult RepoView(string userName, string repoName, string path)
         {
-            var model = new RepoViewViewModel();
-            model.RepoRootPath = $"/{userName}/{repoName}";
-            //Todo: read content from repository
-            //Git clone, then git pull, then list files
-            model.InnerContent = new List<string>
+            var repo =
+                _context.Repos.Include(r => r.Author)
+                    .First(
+                        r =>
+                            String.Equals(r.RepoName.ToLower(), repoName.ToLower()) &&
+                            String.Equals(r.Author.UserName.ToLower(), userName.ToLower()));
+            if (repo == null || !repo.IsPublic)
+                RedirectToAction("Error");
+            var fullRepoName = $"{userName.ToLower()}-{repoName.ToLower()}";
+            if (!Directory.Exists(_environment.WebRootPath + $"/Repos/{fullRepoName}"))
+                _gitService.Clone(_environment.WebRootPath+"/Repos",fullRepoName);
+            _gitService.Pull(_environment.WebRootPath + "/Repos",fullRepoName);
+            var repoDirectory = $"{_environment.WebRootPath}/Repos/{fullRepoName}/{path}";
+            if (!Directory.Exists(repoDirectory))
+                RedirectToAction("Error");
+            var model = new RepoViewViewModel
             {
-                "test1",
-                "test2",
-                "test3"
+                RepoRootPath = $"/{userName}/{repoName}",
+                InnerContent = Directory.GetFiles(repoDirectory).ToList(),
+                Path = new List<string>(new[] {userName, repoName})
             };
-            model.Path = new List<string>(new []{ userName, repoName});
             if (!String.IsNullOrWhiteSpace(path))
             {
                 model.Path.AddRange(path.Split('/'));
@@ -142,8 +152,8 @@ namespace Identity.Controllers
                 });
             _context.SaveChanges();
             if (!Directory.Exists(_environment.WebRootPath+@"/gitolite-admin"))
-                _gitService.Clone(_environment.WebRootPath);
-            _gitService.Pull(_environment.WebRootPath);
+                _gitService.CloneMaster(_environment.WebRootPath);
+            _gitService.PullMaster(_environment.WebRootPath);
             var configPath = _environment.WebRootPath + @"/gitolite-admin/conf/" + user.UserName.ToLower()+".conf";
             if (!System.IO.File.Exists(configPath))
                 System.IO.File.Create(configPath);

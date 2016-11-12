@@ -7,9 +7,13 @@ namespace Identity.Services
     {
         void Upload(string path);
 
-        void Pull(string path);
+        void PullMaster(string path);
 
-        void Clone(string path);
+        void CloneMaster(string path);
+
+        void Clone(string path, string repoName);
+
+        void Pull(string path, string repoName);
 
         GitCommit Info(string directory, string sha = "");
 

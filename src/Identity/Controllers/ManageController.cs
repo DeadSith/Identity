@@ -90,8 +90,8 @@ namespace Identity.Controllers
                 lock (lockObj)
                 {
                     if (!Directory.Exists(_gitUsersPath))
-                        _gitService.Clone(_environment.WebRootPath);
-                    _gitService.Pull(_environment.WebRootPath);
+                        _gitService.CloneMaster(_environment.WebRootPath);
+                    _gitService.PullMaster(_environment.WebRootPath);
                     using (var fileStream = new FileStream(Path.Combine(_gitUsersPath, user.UserName.ToLower() + ".pub"), FileMode.Create))
                     {
                         file.CopyTo(fileStream);
