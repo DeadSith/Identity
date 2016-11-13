@@ -1,5 +1,5 @@
 ﻿@using System.Text
-@model RepoViewViewModel
+@model RepoInfoViewModel
 
 <nav class="navbar navbar-default">
     <div class="container-fluid">
@@ -38,27 +38,22 @@
                     }
                     repoPath.Remove(repoPath.Length - 1, 1);
                 }
-                <li class="active"><a href="@repoPath">Files <span class="sr-only">(current)</span></a></li>
-                <li><a href="Info/@repoPath">Info</a></li>
+                <li><a asp-action="@repoPath">Files</a></li>
+                <li class="active"><a href="Info/@repoPath">Info <span class="sr-only">(current)</span></a></li>
             </ul>
         </div>
     </div>
 </nav>
-
-<br /><br /><br />
-<div class="list-group">
-    @foreach (var element in Model.InnerFolders)
-    {
-        var path = $"{Model.FullPath}/{element}";
-        <a class="list-group-item list-group-item-info" href="@path">
-            @element
-        </a>
-    }
-    @foreach (var element in Model.InnerFiles)
-    {
-        var path = $"{Model.FullPath}/{element}";
-        <a class="list-group-item list-group-item-success disabled" href="@path">
-            @element
-        </a>
-    }
-</div>
+<br/><br/>
+<dl class="dl-horizontal">
+    <dt>Clone uri:</dt>
+    <dd>
+        @Model.RepoUri
+    </dd>
+    <dt>
+        Other info
+    </dt>
+    <dd>
+        Will go here
+    </dd>
+</dl>

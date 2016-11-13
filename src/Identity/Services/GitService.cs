@@ -10,10 +10,10 @@ namespace Identity.Services
     {
         public GitService(string gitServer)
         {
-            _gitServer = gitServer;
+            GitServer = gitServer;
         }
 
-        private string _gitServer { get; }
+        public string GitServer { get; }
 
         public string StartGit(string command, string directory)
         {
@@ -54,12 +54,12 @@ namespace Identity.Services
 
         public void CloneMaster(string path)
         {
-            StartGit(@" clone " + _gitServer + @":gitolite-admin", path);
+            StartGit(@" clone " + GitServer + @":gitolite-admin", path);
         }
 
         public void Clone(string path, string repoName)
         {
-            StartGit(@" clone " + _gitServer + $":{repoName}", path);
+            StartGit(@" clone " + GitServer + $":{repoName}", path);
         }
 
         public void Pull(string path, string repoName)

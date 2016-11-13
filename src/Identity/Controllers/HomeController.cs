@@ -80,6 +80,7 @@ namespace Identity.Controllers
         [HttpGet]
         public IActionResult RepoView(string userName, string repoName, string path)
         {
+            //Todo: private repos
             var repo =
                 _context.Repos.Include(r => r.Author)
                     .First(
@@ -124,6 +125,30 @@ namespace Identity.Controllers
             else
             {
                 model.FullPath = $"/{userName}/{repoName}";
+            }
+            return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult RepoInfo(string userName, string repoName, string path)
+        {
+            var repo =
+               _context.Repos.Include(r => r.Author)
+                   .First(
+                       r =>
+                           String.Equals(r.RepoName.ToLower(), repoName.ToLower()) &&
+                           String.Equals(r.Author.UserName.ToLower(), userName.ToLower()));
+            if (repo == null || !repo.IsPublic)
+                RedirectToAction("Error");
+            var model = new RepoInfoViewModel
+            {
+                RepoRootPath = $"/{userName}/{repoName}",
+                Path = new List<string>(new[] { userName, repoName }),
+                RepoUri = $"{_gitService.GitServer}:{userName}-{repoName}"
+            };
+            if (!String.IsNullOrWhiteSpace(path))
+            {
+                model.Path.AddRange(path.Split('/'));
             }
             return View(model);
         }

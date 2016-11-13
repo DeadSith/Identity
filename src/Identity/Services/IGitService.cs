@@ -5,6 +5,8 @@ namespace Identity.Services
 {
     public interface IGitService
     {
+        string GitServer { get; }
+
         void Upload(string path);
 
         void PullMaster(string path);
