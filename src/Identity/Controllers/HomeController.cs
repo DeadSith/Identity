@@ -72,7 +72,7 @@ namespace Identity.Controllers
         }
 
         [HttpGet]
-        public IActionResult RepoView(string userName, string repoName, string path)
+        public async Task<IActionResult> RepoView(string userName, string repoName, string path)
         {
             //Todo: private repos
             var repo =
@@ -81,7 +81,10 @@ namespace Identity.Controllers
                         r =>
                             String.Equals(r.RepoName.ToLower(), repoName.ToLower()) &&
                             String.Equals(r.Author.UserName.ToLower(), userName.ToLower()));
-            if (repo == null || !repo.IsPublic)
+            if (repo == null)
+                RedirectToAction("Error");
+            var user = await _userManager.GetUserAsync(HttpContext.User);
+            if(!CheckAccess(repo,user))
                 RedirectToAction("Error");
             var fullRepoName = $"{userName.ToLower()}-{repoName.ToLower()}";
             if (!Directory.Exists(_environment.WebRootPath + $"/Repos/{fullRepoName}"))
@@ -124,15 +127,18 @@ namespace Identity.Controllers
         }
 
         [HttpGet]
-        public IActionResult RepoInfo(string userName, string repoName, string path)
+        public async Task<IActionResult> RepoInfo(string userName, string repoName, string path)
         {
             var repo =
                _context.Repos.Include(r => r.Author)
                    .First(
                        r =>
                            String.Equals(r.RepoName.ToLower(), repoName.ToLower()) &&
-                           String.Equals(r.Author.UserName.ToLower(), userName.ToLower()));
-            if (repo == null || !repo.IsPublic)
+                           String.Equals(r.Author.UserName.ToLower(), userName.ToLower()));            
+            if (repo == null)
+                RedirectToAction("Error");
+            var user = await _userManager.GetUserAsync(HttpContext.User);
+            if(!CheckAccess(repo,user))
                 RedirectToAction("Error");
             var model = new RepoInfoViewModel
             {
@@ -169,6 +175,16 @@ namespace Identity.Controllers
             return RedirectToAction("Index");
         }
 
+        public async Task<IActionResult> Profile(string userName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IActionResult ViewFile(string userName, string repoName, string path)
+        {
+            throw new NotImplementedException();
+        }
+
         public IActionResult Error()
         {
             return View();
@@ -198,6 +214,11 @@ namespace Identity.Controllers
                 sw.WriteLine($"   RW+\t=\t{user.UserName.ToLower()}");
             }
             _gitService.Upload(_environment.WebRootPath);
+        }
+
+        private bool CheckAccess(GitRepo repo, ApplicationUser user)
+        {
+            return repo.IsPublic||String.Equals(repo.Author.UserName,user.UserName);
         }
     }
 }

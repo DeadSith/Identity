@@ -36,6 +36,7 @@
                     {
                         repoPath.Append(Model.Path[j] + "/");
                     }
+                    repoPath.Remove(repoPath.Length - 1, 1);
                 }
                 <li class="active"><a href="@repoPath">Files <span class="sr-only">(current)</span></a></li>
                 @{
