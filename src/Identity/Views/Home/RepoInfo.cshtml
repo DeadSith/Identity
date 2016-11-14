@@ -32,14 +32,17 @@
             <ul class="nav navbar-nav navbar-right">
                 @{
                     var repoPath = new StringBuilder($"{Model.RepoRootPath}/");
-                    for (var j = 2; j <= Model.Path.Count; j++)
+                    for (var j = 2; j < Model.Path.Count; j++)
                     {
                         repoPath.Append(Model.Path[j] + "/");
                     }
                     repoPath.Remove(repoPath.Length - 1, 1);
                 }
-                <li><a asp-action="@repoPath">Files</a></li>
-                <li class="active"><a href="Info/@repoPath">Info <span class="sr-only">(current)</span></a></li>
+                <li><a href="@repoPath">Files</a></li>
+                @{
+                    var infoPath = "/Info"+repoPath.ToString();
+                }
+                <li class="active"><a href="@infoPath">Info <span class="sr-only">(current)</span></a></li>
             </ul>
         </div>
     </div>

@@ -56,15 +56,9 @@ namespace Identity.Controllers
             if (!_signInManager.IsSignedIn(HttpContext.User))
                 return View();
             var user = await _userManager.GetUserAsync(HttpContext.User);
-            /* _context.Repos.Add(new GitRepo
-             {
-                 Author = user,
-                 IsPublic = true,
-                 RepoName = "Test",
-                 UserId = user.Id
-             });
-             _context.SaveChanges();*/
             var fixedUser = _context.Users.Include(u => u.Repos).First(u => String.Equals(u.Id, user.Id));
+            /*fixedUser.ShaUploaded = true;
+            _context.SaveChanges();*/
             return View(fixedUser);
         }
 
@@ -144,7 +138,7 @@ namespace Identity.Controllers
             {
                 RepoRootPath = $"/{userName}/{repoName}",
                 Path = new List<string>(new[] { userName, repoName }),
-                RepoUri = $"{_gitService.GitServer}:{userName}-{repoName}"
+                RepoUri = $"{_gitService.GitServer}:{userName.ToLower()}-{repoName.ToLower()}"
             };
             if (!String.IsNullOrWhiteSpace(path))
             {
