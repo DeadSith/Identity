@@ -177,7 +177,12 @@ namespace Identity.Controllers
 
         public async Task<IActionResult> Profile(string userName)
         {
-            throw new NotImplementedException();
+            var model = new ProfileViewModel();
+            var user =
+                _context.Users.Include(u => u.Repos).First(u => String.Equals(u.UserName.ToLower(), userName.ToLower()));
+            model.UserName = userName;
+            model.PublicRepos = user.Repos.Where(r => r.IsPublic).ToList();
+            return View(model);
         }
 
         public IActionResult ViewFile(string userName, string repoName, string path)

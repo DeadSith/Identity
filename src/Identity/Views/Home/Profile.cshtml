@@ -1,0 +1,38 @@
+﻿@model ProfileViewModel
+
+@{
+    ViewData["Title"] = @Model.UserName;
+}
+
+<dl class="dl-horizontal">
+    <dt>Username:</dt>
+    <dd>
+        @Model.UserName
+    </dd>
+    <dt>
+        Other info
+    </dt>
+    <dd>
+        Will go here
+    </dd>
+</dl>
+
+<ul class="list-group">
+    @if (Model.PublicRepos.Count == 0)
+    {
+        <li>
+            There are no repos
+        </li>
+    }
+    else
+    {
+        foreach (var repo in Model.PublicRepos)
+        {
+            <li>
+                <a href="/@repo.Author.UserName/@repo.RepoName" class="btn btn-default">
+                    @repo.RepoName
+                </a>
+            </li>
+        }
+    }
+</ul>
