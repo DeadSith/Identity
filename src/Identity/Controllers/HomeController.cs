@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -185,9 +186,46 @@ namespace Identity.Controllers
             return View(model);
         }
 
-        public IActionResult ViewFile(string userName, string repoName, string path)
+        public async Task<IActionResult> ViewFile(string userName, string repoName, string path)
         {
-            throw new NotImplementedException();
+            var repo =
+                _context.Repos.Include(r => r.Author)
+                    .First(
+                        r =>
+                            String.Equals(r.RepoName.ToLower(), repoName.ToLower()) &&
+                            String.Equals(r.Author.UserName.ToLower(), userName.ToLower()));
+            if (repo == null)
+                RedirectToAction("Error");
+            var user = await _userManager.GetUserAsync(HttpContext.User);
+            if (!CheckAccess(repo, user))
+                RedirectToAction("Error");
+            var fullRepoName = $"{userName.ToLower()}-{repoName.ToLower()}";
+            if (!Directory.Exists(_environment.WebRootPath + $"/Repos/{fullRepoName}"))
+                _gitService.Clone(_environment.WebRootPath + "/Repos", fullRepoName);
+            _gitService.Pull(_environment.WebRootPath + "/Repos", fullRepoName);
+            var file = $"{_environment.WebRootPath}/Repos/{fullRepoName}/{path}";
+            if (!System.IO.File.Exists(file))
+                RedirectToAction("Error");
+            var model = new ViewFileViewModel();
+            model.RepoRootPath = fullRepoName;
+            model.Path = new List<string>(new[] {userName, repoName});
+            if (!String.IsNullOrWhiteSpace(path))
+            {
+                var pathElements = path.Split('/');
+                for(var i = 0;i<pathElements.Length -1;i++)
+                    model.Path.Add(pathElements[i]);
+                model.FileName = pathElements[pathElements.Length - 1];
+            }
+            else
+            {
+                RedirectToAction("Error");
+            }
+            var fs = new FileStream(file, FileMode.Open);
+            using (var sr = new StreamReader(fs,GetEncoding(file)))
+            {
+                model.FileContent = sr.ReadToEnd();
+            }
+            return View(model);
         }
 
         public IActionResult Error()
@@ -224,6 +262,24 @@ namespace Identity.Controllers
         private bool CheckAccess(GitRepo repo, ApplicationUser user)
         {
             return repo.IsPublic||String.Equals(repo.Author.UserName,user.UserName);
+        }
+
+        public static Encoding GetEncoding(string filename)
+        {
+            // Read the BOM
+            var bom = new byte[4];
+            using (var file = new FileStream(filename, FileMode.Open, FileAccess.Read))
+            {
+                file.Read(bom, 0, 4);
+            }
+
+            // Analyze the BOM
+            if (bom[0] == 0x2b && bom[1] == 0x2f && bom[2] == 0x76) return Encoding.UTF7;
+            if (bom[0] == 0xef && bom[1] == 0xbb && bom[2] == 0xbf) return Encoding.UTF8;
+            if (bom[0] == 0xff && bom[1] == 0xfe) return Encoding.Unicode; //UTF-16LE
+            if (bom[0] == 0xfe && bom[1] == 0xff) return Encoding.BigEndianUnicode; //UTF-16BE
+            if (bom[0] == 0 && bom[1] == 0 && bom[2] == 0xfe && bom[3] == 0xff) return Encoding.UTF32;
+            return Encoding.ASCII;
         }
     }
 }
