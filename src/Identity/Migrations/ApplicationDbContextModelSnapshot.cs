@@ -1,9 +1,8 @@
-﻿using System;
+﻿using Identity.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
-using Identity.Data;
+using System;
 
 namespace Identity.Migrations
 {

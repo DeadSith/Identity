@@ -2,6 +2,8 @@
 using Identity.Models;
 using Identity.Models.HomeViewModels;
 using Identity.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,8 +14,6 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Hosting;
 
 namespace Identity.Controllers
 {
@@ -68,7 +68,7 @@ namespace Identity.Controllers
             var user = await _userManager.GetUserAsync(HttpContext.User);
             var fixedUser = _context.Users.Include(u => u.Repos).First(u => String.Equals(u.Id, user.Id));
             fixedUser.Repos.Clear();
-            _context.SaveChanges();   
+            _context.SaveChanges();
             return RedirectToAction("Index");
         }
 
@@ -85,12 +85,12 @@ namespace Identity.Controllers
             if (repo == null)
                 RedirectToAction("Error");
             var user = await _userManager.GetUserAsync(HttpContext.User);
-            if(!CheckAccess(repo,user))
+            if (!CheckAccess(repo, user))
                 RedirectToAction("Error");
             var fullRepoName = $"{userName.ToLower()}-{repoName.ToLower()}";
             if (!Directory.Exists(_environment.WebRootPath + $"/Repos/{fullRepoName}"))
-                _gitService.Clone(_environment.WebRootPath+"/Repos",fullRepoName);
-            _gitService.Pull(_environment.WebRootPath + "/Repos",fullRepoName);
+                _gitService.Clone(_environment.WebRootPath + "/Repos", fullRepoName);
+            _gitService.Pull(_environment.WebRootPath + "/Repos", fullRepoName);
             var repoDirectory = $"{_environment.WebRootPath}/Repos/{fullRepoName}/{path}";
             if (!Directory.Exists(repoDirectory))
                 RedirectToAction("Error");
@@ -100,19 +100,19 @@ namespace Identity.Controllers
                 RepoRootPath = $"/{userName}/{repoName}",
                 InnerFolders = new List<string>(),
                 InnerFiles = new List<string>(),
-                Path = new List<string>(new[] {userName, repoName})
+                Path = new List<string>(new[] { userName, repoName })
             };
-            for(var i = 0;i<content.Length;i++)
+            for (var i = 0; i < content.Length; i++)
             {
                 var last = content[i].Split('/').Last();
-                if(!String.Equals(last,".git"))
+                if (!String.Equals(last, ".git"))
                     model.InnerFolders.Add(last);
             }
             content = Directory.GetFiles(repoDirectory);
-            for(var i = 0;i<content.Length;i++)
+            for (var i = 0; i < content.Length; i++)
             {
                 var last = content[i].Split('/').Last();
-                if(!String.Equals(last,".git"))
+                if (!String.Equals(last, ".git"))
                     model.InnerFiles.Add(last);
             }
             if (!String.IsNullOrWhiteSpace(path))
@@ -135,11 +135,11 @@ namespace Identity.Controllers
                    .First(
                        r =>
                            String.Equals(r.RepoName.ToLower(), repoName.ToLower()) &&
-                           String.Equals(r.Author.UserName.ToLower(), userName.ToLower()));            
+                           String.Equals(r.Author.UserName.ToLower(), userName.ToLower()));
             if (repo == null)
                 RedirectToAction("Error");
             var user = await _userManager.GetUserAsync(HttpContext.User);
-            if(!CheckAccess(repo,user))
+            if (!CheckAccess(repo, user))
                 RedirectToAction("Error");
             var model = new RepoInfoViewModel
             {
@@ -172,7 +172,7 @@ namespace Identity.Controllers
                 return View("Index");
             var user = await _userManager.GetUserAsync(HttpContext.User);
             var fixedUser = _context.Users.Include(u => u.Repos).First(u => String.Equals(u.Id, user.Id));
-            AddRepo(fixedUser, model.RepoName,model.IsPublic);
+            AddRepo(fixedUser, model.RepoName, model.IsPublic);
             return RedirectToAction("Index");
         }
 
@@ -208,11 +208,11 @@ namespace Identity.Controllers
                 RedirectToAction("Error");
             var model = new ViewFileViewModel();
             model.RepoRootPath = fullRepoName;
-            model.Path = new List<string>(new[] {userName, repoName});
+            model.Path = new List<string>(new[] { userName, repoName });
             if (!String.IsNullOrWhiteSpace(path))
             {
                 var pathElements = path.Split('/');
-                for(var i = 0;i<pathElements.Length -1;i++)
+                for (var i = 0; i < pathElements.Length - 1; i++)
                     model.Path.Add(pathElements[i]);
                 model.FileName = pathElements[pathElements.Length - 1];
             }
@@ -221,7 +221,7 @@ namespace Identity.Controllers
                 RedirectToAction("Error");
             }
             var fs = new FileStream(file, FileMode.Open);
-            using (var sr = new StreamReader(fs,GetEncoding(file)))
+            using (var sr = new StreamReader(fs, GetEncoding(file)))
             {
                 model.FileContent = sr.ReadToEnd();
             }
@@ -233,7 +233,7 @@ namespace Identity.Controllers
             return View();
         }
 
-        private void AddRepo(ApplicationUser user, string repositoryName,bool isPublic)
+        private void AddRepo(ApplicationUser user, string repositoryName, bool isPublic)
         {
             _context.Repos.Add(
                 new GitRepo
@@ -244,13 +244,13 @@ namespace Identity.Controllers
                     RepoKey = Guid.NewGuid().ToString()
                 });
             _context.SaveChanges();
-            if (!Directory.Exists(_environment.WebRootPath+@"/gitolite-admin"))
+            if (!Directory.Exists(_environment.WebRootPath + @"/gitolite-admin"))
                 _gitService.CloneMaster(_environment.WebRootPath);
             _gitService.PullMaster(_environment.WebRootPath);
-            var configPath = _environment.WebRootPath + @"/gitolite-admin/conf/" + user.UserName.ToLower()+".conf";
+            var configPath = _environment.WebRootPath + @"/gitolite-admin/conf/" + user.UserName.ToLower() + ".conf";
             if (!System.IO.File.Exists(configPath))
                 System.IO.File.Create(configPath);
-            var stream = System.IO.File.Open(configPath,FileMode.Append);
+            var stream = System.IO.File.Open(configPath, FileMode.Append);
             using (var sw = new StreamWriter(stream))
             {
                 sw.WriteLine($"repo {user.UserName.ToLower()}-{repositoryName.ToLower()}");
@@ -261,7 +261,7 @@ namespace Identity.Controllers
 
         private bool CheckAccess(GitRepo repo, ApplicationUser user)
         {
-            return repo.IsPublic||String.Equals(repo.Author.UserName,user.UserName);
+            return repo.IsPublic || String.Equals(repo.Author.UserName, user.UserName);
         }
 
         public static Encoding GetEncoding(string filename)

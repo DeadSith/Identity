@@ -94,12 +94,12 @@ namespace Identity
                 routes.MapRoute(
                     name: "Error",
                     template: "Error",
-                    defaults: new {controller = "Home", action = "Error"}
+                    defaults: new { controller = "Home", action = "Error" }
                 );
                 routes.MapRoute(
                     name: "Profile",
                     template: "{userName}",
-                    defaults: new {controller = "Home", action = "Profile"}
+                    defaults: new { controller = "Home", action = "Profile" }
                 );
                 routes.MapRoute(
                     name: "RepoInfo",
@@ -113,7 +113,6 @@ namespace Identity
                     name: "RepoView",
                     template: "{userName}/{repoName}/{*path}",
                     defaults: new { controller = "Home", action = "RepoView" });
-                
             });
         }
     }
