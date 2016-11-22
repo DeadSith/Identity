@@ -62,8 +62,8 @@
     }
     @foreach (var element in Model.InnerFiles)
     {
-        var path = $"{Model.FullPath}/{element}";
-        <a class="list-group-item list-group-item-success disabled" href="@path">
+        var path = $"/View{Model.FullPath}/{element}";
+        <a class="list-group-item list-group-item-success" href="@path">
             @element
         </a>
     }

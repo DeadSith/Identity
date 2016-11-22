@@ -14,6 +14,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Html;
 
 namespace Identity.Controllers
 {
@@ -207,7 +208,7 @@ namespace Identity.Controllers
             if (!System.IO.File.Exists(file))
                 RedirectToAction("Error");
             var model = new ViewFileViewModel();
-            model.RepoRootPath = fullRepoName;
+            model.RepoRootPath = $"/{userName}/{repoName}";
             model.Path = new List<string>(new[] { userName, repoName });
             if (!String.IsNullOrWhiteSpace(path))
             {
@@ -223,7 +224,14 @@ namespace Identity.Controllers
             var fs = new FileStream(file, FileMode.Open);
             using (var sr = new StreamReader(fs, GetEncoding(file)))
             {
-                model.FileContent = sr.ReadToEnd();
+                var content = sr.ReadToEnd();
+                var lines = content.Split('\n');
+                model.FileContent = new List<HtmlString>(lines.Length);
+                foreach(var line in lines)
+                {
+                    var c = new HtmlString(line);
+                    model.FileContent.Add(c);
+                }
             }
             return View(model);
         }

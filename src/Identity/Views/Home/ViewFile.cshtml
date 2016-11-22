@@ -51,5 +51,10 @@
 
 <h1>@Model.FileName:</h1>
 <div>
-    @Model.FileContent
+    <br/><br/>
+    @foreach(var line in Model.FileContent)
+    {
+        @line
+        <br/>
+    }
 </div>
