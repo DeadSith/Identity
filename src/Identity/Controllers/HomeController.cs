@@ -74,9 +74,7 @@ namespace Identity.Controllers
             if (!CheckAccess(repo, user))
                 RedirectToAction("Error");
             var fullRepoName = $"{userName.ToLower()}-{repoName.ToLower()}";
-            if (!Directory.Exists(_environment.WebRootPath + $"/Repos/{fullRepoName}"))
-                _gitService.Clone(_environment.WebRootPath + "/Repos", fullRepoName);
-            _gitService.Pull(_environment.WebRootPath + "/Repos", fullRepoName);
+            var branches = UpdateRepo(fullRepoName,branch);
             var repoDirectory = $"{_environment.WebRootPath}/Repos/{fullRepoName}/{path}";
             if (!Directory.Exists(repoDirectory))
                 RedirectToAction("Error");
@@ -86,7 +84,9 @@ namespace Identity.Controllers
                 RepoRootPath = $"/{userName}/{repoName}",
                 InnerFolders = new List<string>(),
                 InnerFiles = new List<string>(),
-                Path = new List<string>(new[] { userName, repoName })
+                Path = new List<string>(new[] { userName, repoName }),
+                Branches = branches,
+                CurrentBranchIndex = branches.IndexOf(branch)
             };
             foreach (var s in content)
             {
@@ -104,15 +104,16 @@ namespace Identity.Controllers
             if (!String.IsNullOrWhiteSpace(path))
             {
                 model.Path.AddRange(path.Split('/'));
-                model.FullPath = $"/{userName}/{repoName}/{path}";
+                model.FullPath = $"/{userName}/{repoName}/{branch}/{path}";
             }
             else
             {
-                model.FullPath = $"/{userName}/{repoName}";
+                model.FullPath = $"/{userName}/{repoName}/{branch}";
             }
             return View(model);
         }
 
+        //Todo: show repo info
         [HttpGet]
         public async Task<IActionResult> RepoInfo(string userName, string repoName, string branch, string path)
         {
@@ -127,11 +128,14 @@ namespace Identity.Controllers
             var user = await _userManager.GetUserAsync(HttpContext.User);
             if (!CheckAccess(repo, user))
                 RedirectToAction("Error");
+            var branches = UpdateRepo($"{userName.ToLower()}-{repoName.ToLower()}", branch);
             var model = new RepoInfoViewModel
             {
                 RepoRootPath = $"/{userName}/{repoName}",
                 Path = new List<string>(new[] { userName, repoName }),
-                RepoUri = $"{_gitService.GitServer}:{userName.ToLower()}-{repoName.ToLower()}"
+                RepoUri = $"{_gitService.GitServer}:{userName.ToLower()}-{repoName.ToLower()}",
+                Branches = branches,
+                CurrentBranchIndex = branches.IndexOf(branch)
             };
             if (!String.IsNullOrWhiteSpace(path))
             {
@@ -172,8 +176,6 @@ namespace Identity.Controllers
             return View(model);
         }
 
-
-        //Todo: test syntacs highlighting
         public async Task<IActionResult> ViewFile(string userName, string repoName, string branch, string path)
         {
             var repo =
@@ -188,16 +190,16 @@ namespace Identity.Controllers
             if (!CheckAccess(repo, user))
                 RedirectToAction("Error");
             var fullRepoName = $"{userName.ToLower()}-{repoName.ToLower()}";
-            if (!Directory.Exists(_environment.WebRootPath + $"/Repos/{fullRepoName}"))
-                _gitService.Clone(_environment.WebRootPath + "/Repos", fullRepoName);
-            _gitService.Pull(_environment.WebRootPath + "/Repos", fullRepoName);
+            var branches = UpdateRepo(fullRepoName,branch);
             var file = $"{_environment.WebRootPath}/Repos/{fullRepoName}/{path}";
             if (!System.IO.File.Exists(file))
                 RedirectToAction("Error");
             var model = new ViewFileViewModel
             {
                 RepoRootPath = $"/{userName}/{repoName}",
-                Path = new List<string>(new[] {userName, repoName})
+                Path = new List<string>(new[] {userName, repoName}),
+                Branches = branches,
+                CurrentBranchIndex = branches.IndexOf(branch)
             };
             if (!String.IsNullOrWhiteSpace(path))
             {
@@ -222,6 +224,11 @@ namespace Identity.Controllers
         public IActionResult Error()
         {
             return View();
+        }
+        //Todo
+        public IActionResult ClearCache(IRepoView model)
+        {
+            throw new NotImplementedException();
         }
 
         private void AddRepo(ApplicationUser user, string repositoryName, bool isPublic)
@@ -271,6 +278,27 @@ namespace Identity.Controllers
             if (bom[0] == 0xfe && bom[1] == 0xff) return Encoding.BigEndianUnicode; //UTF-16BE
             if (bom[0] == 0 && bom[1] == 0 && bom[2] == 0xfe && bom[3] == 0xff) return Encoding.UTF32;
             return Encoding.ASCII;
+        }
+
+        /// <summary>
+        /// Updates local copy of repo and switches to specified branch
+        /// </summary>
+        /// <param name="repoName">Name of repo to update</param>
+        /// <param name="branch">Branch to switch</param>
+        /// <returns>
+        /// List of all branches of current repo
+        /// </returns>
+        private List<string> UpdateRepo(string repoName, string branch = "")
+        {
+            var path = _environment.WebRootPath + "/Repos";
+            if (!Directory.Exists($"{path}/{repoName}"))
+                _gitService.Clone(path, repoName);
+            _gitService.Pull(path, repoName);
+            var res = _gitService.GetBranches($"{path}/{repoName}");
+            if(!String.Equals("HEAD",branch)&&!res.Contains(branch))
+                throw new ArgumentException();
+            _gitService.SwitchBranch($"{path}/{repoName}",branch);
+            return res;
         }
     }
 }

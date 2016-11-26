@@ -67,9 +67,22 @@ namespace Identity.Services
             StartGit(" pull", path + $"/{repoName}");
         }
 
-        public List<string> GetBranches(string repoName)
+        public List<string> GetBranches(string repoPath)
         {
-            throw new NotImplementedException();
+            var result = StartGit(" branch -r", repoPath);
+            var strings = result.Split('\n');
+            var res = new List<string>();
+            for (var i = 1; i < strings.Length; i++)
+            {
+                var repo = strings[i].Split('/').Last();
+                res.Add(repo);
+            }
+            return res;
+        }
+
+        public void SwitchBranch(string repoPath, string branchName)
+        {
+            StartGit($" checkout origin/{branchName}", repoPath);
         }
 
         public GitCommit Info(string directory, string sha = "")

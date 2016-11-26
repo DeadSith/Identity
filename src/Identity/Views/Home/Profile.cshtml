@@ -29,9 +29,10 @@
         foreach (var repo in Model.PublicRepos)
         {
             <li>
-                <a href="/@repo.Author.UserName/@repo.RepoName/master" class="btn btn-default">
-                    @repo.RepoName
-                </a>
+              <!--Todo: implement HEAD instead of master-->
+              <a href="/@repo.Author.UserName/@repo.RepoName/master" class="btn btn-default">
+                @repo.RepoName
+              </a>
             </li>
         }
     }

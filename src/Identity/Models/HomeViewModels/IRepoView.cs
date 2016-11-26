@@ -7,6 +7,6 @@ namespace Identity.Models.HomeViewModels
         string RepoRootPath { get; set; }
         List<string> Path { get; set; }
         List<string> Branches { get; set; }
-        int CurrentBranchNumber { get; set; } 
+        int CurrentBranchIndex { get; set; }
     }
 }
