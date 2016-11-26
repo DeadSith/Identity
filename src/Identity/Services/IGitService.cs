@@ -17,6 +17,8 @@ namespace Identity.Services
 
         void Pull(string path, string repoName);
 
+        List<string> GetBranches(string repoName);
+
         GitCommit Info(string directory, string sha = "");
 
         List<string> GetAllRepos();

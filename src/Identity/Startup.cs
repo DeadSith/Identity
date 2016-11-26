@@ -103,15 +103,15 @@ namespace Identity
                 );
                 routes.MapRoute(
                     name: "RepoInfo",
-                    template: "Info/{userName}/{repoName}/{*path}",
+                    template: "Info/{userName}/{repoName}/{branch}/{*path}",
                     defaults: new { controller = "Home", action = "RepoInfo" });
                 routes.MapRoute(
                     name: "ViewFile",
-                    template: "View/{userName}/{repoName}/{*path}",
+                    template: "View/{userName}/{repoName}/{branch}/{*path}",
                     defaults: new { controller = "Home", action = "ViewFile" });
                 routes.MapRoute(
                     name: "RepoView",
-                    template: "{userName}/{repoName}/{*path}",
+                    template: "{userName}/{repoName}/{branch}/{*path}",
                     defaults: new { controller = "Home", action = "RepoView" });
             });
         }

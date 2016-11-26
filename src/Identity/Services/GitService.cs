@@ -67,6 +67,11 @@ namespace Identity.Services
             StartGit(" pull", path + $"/{repoName}");
         }
 
+        public List<string> GetBranches(string repoName)
+        {
+            throw new NotImplementedException();
+        }
+
         public GitCommit Info(string directory, string sha = "")
         {
             var result = StartGit(" log -1", directory);

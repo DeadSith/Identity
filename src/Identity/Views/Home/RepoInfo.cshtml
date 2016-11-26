@@ -14,13 +14,13 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="@Model.RepoRootPath">Root</a>
+            <a class="navbar-brand" href="@Model.RepoRootPath/@Model.Branches[Model.CurrentBranchNumber]">Root</a>
         </div>
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav">
                 @for (var i = 2; i < Model.Path.Count; i++)
                 {
-                    var path = new StringBuilder($"{Model.RepoRootPath}/");
+                    var path = new StringBuilder($"{Model.RepoRootPath}/{Model.Branches[Model.CurrentBranchNumber]}/");
                     for (var j = 2; j <= i; j++)
                     {
                         path.Append(Model.Path[j] + "/");
@@ -35,7 +35,7 @@
             </ul>
             <ul class="nav navbar-nav navbar-right">
                 @{
-                    var repoPath = new StringBuilder($"{Model.RepoRootPath}/");
+                    var repoPath = new StringBuilder($"{Model.RepoRootPath}/{Model.Branches[Model.CurrentBranchNumber]}/");
                     for (var j = 2; j < Model.Path.Count; j++)
                     {
                         repoPath.Append(Model.Path[j] + "/");

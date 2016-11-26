@@ -60,7 +60,7 @@ namespace Identity.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> RepoView(string userName, string repoName, string path)
+        public async Task<IActionResult> RepoView(string userName, string repoName, string branch, string path)
         {
             var repo =
                 _context.Repos.Include(r => r.Author)
@@ -114,7 +114,7 @@ namespace Identity.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> RepoInfo(string userName, string repoName, string path)
+        public async Task<IActionResult> RepoInfo(string userName, string repoName, string branch, string path)
         {
             var repo =
                _context.Repos.Include(r => r.Author)
@@ -174,7 +174,7 @@ namespace Identity.Controllers
 
 
         //Todo: test syntacs highlighting
-        public async Task<IActionResult> ViewFile(string userName, string repoName, string path)
+        public async Task<IActionResult> ViewFile(string userName, string repoName, string branch, string path)
         {
             var repo =
                 _context.Repos.Include(r => r.Author)
@@ -194,9 +194,11 @@ namespace Identity.Controllers
             var file = $"{_environment.WebRootPath}/Repos/{fullRepoName}/{path}";
             if (!System.IO.File.Exists(file))
                 RedirectToAction("Error");
-            var model = new ViewFileViewModel();
-            model.RepoRootPath = $"/{userName}/{repoName}";
-            model.Path = new List<string>(new[] { userName, repoName });
+            var model = new ViewFileViewModel
+            {
+                RepoRootPath = $"/{userName}/{repoName}",
+                Path = new List<string>(new[] {userName, repoName})
+            };
             if (!String.IsNullOrWhiteSpace(path))
             {
                 var pathElements = path.Split('/');
