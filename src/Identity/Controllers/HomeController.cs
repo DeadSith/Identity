@@ -39,20 +39,6 @@ namespace Identity.Controllers
             _environment = environment;
         }
 
-        private List<string> GetGitoliteRepos()
-        {
-            var sshResults = _gitService.GetAllRepos();
-            var repos = new List<string>();
-            var regex = new Regex(@"^[ @]*R.*\s(.*)", RegexOptions.IgnoreCase);
-            foreach (var res in sshResults)
-            {
-                var match = regex.Match(res);
-                if (match.Success)
-                    repos.Add(match.Groups[1].Value);
-            }
-            return repos;
-        }
-
         public async Task<IActionResult> Index()
         {
             if (!_signInManager.IsSignedIn(HttpContext.User))
@@ -76,7 +62,6 @@ namespace Identity.Controllers
         [HttpGet]
         public async Task<IActionResult> RepoView(string userName, string repoName, string path)
         {
-            //Todo: private repos
             var repo =
                 _context.Repos.Include(r => r.Author)
                     .First(
@@ -103,16 +88,16 @@ namespace Identity.Controllers
                 InnerFiles = new List<string>(),
                 Path = new List<string>(new[] { userName, repoName })
             };
-            for (var i = 0; i < content.Length; i++)
+            foreach (var s in content)
             {
-                var last = content[i].Split('/').Last();
+                var last = s.Split('/').Last();
                 if (!String.Equals(last, ".git"))
                     model.InnerFolders.Add(last);
             }
             content = Directory.GetFiles(repoDirectory);
-            for (var i = 0; i < content.Length; i++)
+            foreach (var s in content)
             {
-                var last = content[i].Split('/').Last();
+                var last = s.Split('/').Last();
                 if (!String.Equals(last, ".git"))
                     model.InnerFiles.Add(last);
             }
@@ -187,6 +172,8 @@ namespace Identity.Controllers
             return View(model);
         }
 
+
+        //Todo: test syntacs highlighting
         public async Task<IActionResult> ViewFile(string userName, string repoName, string path)
         {
             var repo =
@@ -225,13 +212,7 @@ namespace Identity.Controllers
             using (var sr = new StreamReader(fs, GetEncoding(file)))
             {
                 var content = sr.ReadToEnd();
-                var lines = content.Split('\n');
-                model.FileContent = new List<HtmlString>(lines.Length);
-                foreach(var line in lines)
-                {
-                    var c = new HtmlString(line);
-                    model.FileContent.Add(c);
-                }
+                model.FileContent = content.Split('\n');
             }
             return View(model);
         }

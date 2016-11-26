@@ -2,10 +2,12 @@
 
 namespace Identity.Models.HomeViewModels
 {
-    public class RepoInfoViewModel
+    public class RepoInfoViewModel: IRepoView
     {
         public string RepoRootPath { get; set; }
         public List<string> Path { get; set; }
+        public List<string> Branches { get; set; }
+        public uint CurrentBranchNumber { get; set; }
         public string RepoUri { get; set; }
     }
 }
