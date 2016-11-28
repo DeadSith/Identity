@@ -1,5 +1,6 @@
 ﻿using Identity.Models;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Identity.Services
 {
@@ -22,6 +23,16 @@ namespace Identity.Services
         void SwitchBranch(string repoPath, string branchName);
 
         GitCommit Info(string directory, string sha = "");
+
+        /// <summary>
+        /// Updates local copy of repo and switches to specified branch
+        /// </summary>
+        /// <param name="repoName">Name of repo to update</param>
+        /// <param name="branch">Branch to switch</param>
+        /// <returns>
+        /// List of all branches of current repo
+        /// </returns>
+        List<string> UpdateLocalRepo(IHostingEnvironment environment, string repoName, string branch);
 
         List<string> GetAllRepos();
     }

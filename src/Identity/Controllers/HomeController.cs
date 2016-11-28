@@ -16,6 +16,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Html;
 
+//Todo: Fix working with empty branche and add HEAD support
 namespace Identity.Controllers
 {
     public class HomeController : Controller
@@ -71,10 +72,10 @@ namespace Identity.Controllers
             if (repo == null)
                 RedirectToAction("Error");
             var user = await _userManager.GetUserAsync(HttpContext.User);
-            if (!CheckAccess(repo, user))
+            if (!repo.CheckAccess(user))
                 RedirectToAction("Error");
             var fullRepoName = $"{userName.ToLower()}-{repoName.ToLower()}";
-            var branches = UpdateRepo(fullRepoName,branch);
+            var branches = _gitService.UpdateLocalRepo(_environment,fullRepoName,branch);
             var repoDirectory = $"{_environment.WebRootPath}/Repos/{fullRepoName}/{path}";
             if (!Directory.Exists(repoDirectory))
                 RedirectToAction("Error");
@@ -126,9 +127,9 @@ namespace Identity.Controllers
             if (repo == null)
                 RedirectToAction("Error");
             var user = await _userManager.GetUserAsync(HttpContext.User);
-            if (!CheckAccess(repo, user))
+            if (!repo.CheckAccess(user))
                 RedirectToAction("Error");
-            var branches = UpdateRepo($"{userName.ToLower()}-{repoName.ToLower()}", branch);
+            var branches = _gitService.UpdateLocalRepo(_environment,$"{userName.ToLower()}-{repoName.ToLower()}",branch);
             var model = new RepoInfoViewModel
             {
                 RepoRootPath = $"/{userName}/{repoName}",
@@ -159,10 +160,10 @@ namespace Identity.Controllers
             ViewData["Success"] = "Repository was successfully created";
             ViewData["Error"] = "Something went wrong";
             if (!_signInManager.IsSignedIn(HttpContext.User))
-                return View("Index");
+                return RedirectToAction("Index");
             var user = await _userManager.GetUserAsync(HttpContext.User);
             var fixedUser = _context.Users.Include(u => u.Repos).First(u => String.Equals(u.Id, user.Id));
-            AddRepo(fixedUser, model.RepoName, model.IsPublic);
+            GitRepo.AddRepo(_context,_environment,_gitService,fixedUser, model.RepoName, model.IsPublic);
             return RedirectToAction("Index");
         }
 
@@ -187,10 +188,10 @@ namespace Identity.Controllers
             if (repo == null)
                 RedirectToAction("Error");
             var user = await _userManager.GetUserAsync(HttpContext.User);
-            if (!CheckAccess(repo, user))
+            if (!repo.CheckAccess(user))
                 RedirectToAction("Error");
             var fullRepoName = $"{userName.ToLower()}-{repoName.ToLower()}";
-            var branches = UpdateRepo(fullRepoName,branch);
+            var branches = _gitService.UpdateLocalRepo(_environment,fullRepoName,branch);
             var file = $"{_environment.WebRootPath}/Repos/{fullRepoName}/{path}";
             if (!System.IO.File.Exists(file))
                 RedirectToAction("Error");
@@ -225,42 +226,14 @@ namespace Identity.Controllers
         {
             return View();
         }
+
         //Todo
         public IActionResult ClearCache(IRepoView model)
         {
             throw new NotImplementedException();
         }
 
-        private void AddRepo(ApplicationUser user, string repositoryName, bool isPublic)
-        {
-            _context.Repos.Add(
-                new GitRepo
-                {
-                    Author = user,
-                    IsPublic = isPublic,
-                    RepoName = repositoryName,
-                    RepoKey = Guid.NewGuid().ToString()
-                });
-            _context.SaveChanges();
-            if (!Directory.Exists(_environment.WebRootPath + @"/gitolite-admin"))
-                _gitService.CloneMaster(_environment.WebRootPath);
-            _gitService.PullMaster(_environment.WebRootPath);
-            var configPath = _environment.WebRootPath + @"/gitolite-admin/conf/" + user.UserName.ToLower() + ".conf";
-            if (!System.IO.File.Exists(configPath))
-                System.IO.File.Create(configPath);
-            var stream = System.IO.File.Open(configPath, FileMode.Append);
-            using (var sw = new StreamWriter(stream))
-            {
-                sw.WriteLine($"repo {user.UserName.ToLower()}-{repositoryName.ToLower()}");
-                sw.WriteLine($"   RW+\t=\t{user.UserName.ToLower()}");
-            }
-            _gitService.Upload(_environment.WebRootPath);
-        }
-
-        private bool CheckAccess(GitRepo repo, ApplicationUser user)
-        {
-            return repo.IsPublic || String.Equals(repo.Author.UserName, user.UserName);
-        }
+        #region Helpers
 
         public static Encoding GetEncoding(string filename)
         {
@@ -280,25 +253,6 @@ namespace Identity.Controllers
             return Encoding.ASCII;
         }
 
-        /// <summary>
-        /// Updates local copy of repo and switches to specified branch
-        /// </summary>
-        /// <param name="repoName">Name of repo to update</param>
-        /// <param name="branch">Branch to switch</param>
-        /// <returns>
-        /// List of all branches of current repo
-        /// </returns>
-        private List<string> UpdateRepo(string repoName, string branch = "")
-        {
-            var path = _environment.WebRootPath + "/Repos";
-            if (!Directory.Exists($"{path}/{repoName}"))
-                _gitService.Clone(path, repoName);
-            _gitService.Pull(path, repoName);
-            var res = _gitService.GetBranches($"{path}/{repoName}");
-            if(!String.Equals("HEAD",branch)&&!res.Contains(branch))
-                throw new ArgumentException();
-            _gitService.SwitchBranch($"{path}/{repoName}",branch);
-            return res;
-        }
+        #endregion
     }
 }

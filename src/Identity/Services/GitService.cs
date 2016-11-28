@@ -2,7 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Identity.Services
 {
@@ -91,6 +93,19 @@ namespace Identity.Services
             //Todo: parse result
             throw new NotImplementedException();
             return new GitCommit();
+        }
+
+        public List<string> UpdateLocalRepo(IHostingEnvironment environment, string repoName, string branch)
+        {
+            var path = environment.WebRootPath + "/Repos";
+            if (!Directory.Exists($"{path}/{repoName}"))
+                this.Clone(path, repoName);
+            this.Pull(path, repoName);
+            var res = this.GetBranches($"{path}/{repoName}");
+            if(!String.Equals("HEAD",branch)&&!res.Contains(branch))
+                throw new ArgumentException();
+            this.SwitchBranch($"{path}/{repoName}",branch);
+            return res;
         }
 
         public List<string> GetAllRepos()
