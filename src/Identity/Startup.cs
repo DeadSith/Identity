@@ -79,7 +79,8 @@ namespace Identity
             }
             else
             {
-                app.UseExceptionHandler("/Home/Error");
+                app.UseStatusCodePagesWithReExecute("/Home/Errors/{0}");
+                //app.UseExceptionHandler("/Home/Error");
             }
 
             app.UseStaticFiles();

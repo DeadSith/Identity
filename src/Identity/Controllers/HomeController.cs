@@ -70,15 +70,15 @@ namespace Identity.Controllers
                             String.Equals(r.RepoName.ToLower(), repoName.ToLower()) &&
                             String.Equals(r.Author.UserName.ToLower(), userName.ToLower()));
             if (repo == null)
-                RedirectToAction("Error");
+                return StatusCode(404);
             var user = await _userManager.GetUserAsync(HttpContext.User);
             if (!repo.CheckAccess(user))
-                RedirectToAction("Error");
+                return StatusCode(403);
             var fullRepoName = $"{userName.ToLower()}-{repoName.ToLower()}";
-            var branches = _gitService.UpdateLocalRepo(_environment,fullRepoName,branch);
+            var branches = _gitService.UpdateLocalRepo(_environment, fullRepoName, branch);
             var repoDirectory = $"{_environment.WebRootPath}/Repos/{fullRepoName}/{path}";
             if (!Directory.Exists(repoDirectory))
-                RedirectToAction("Error");
+                return StatusCode(404);
             var content = Directory.GetDirectories(repoDirectory);
             var model = new RepoViewViewModel
             {
@@ -125,11 +125,11 @@ namespace Identity.Controllers
                            String.Equals(r.RepoName.ToLower(), repoName.ToLower()) &&
                            String.Equals(r.Author.UserName.ToLower(), userName.ToLower()));
             if (repo == null)
-                RedirectToAction("Error");
+                return StatusCode(404);
             var user = await _userManager.GetUserAsync(HttpContext.User);
             if (!repo.CheckAccess(user))
-                RedirectToAction("Error");
-            var branches = _gitService.UpdateLocalRepo(_environment,$"{userName.ToLower()}-{repoName.ToLower()}",branch);
+                return StatusCode(403);
+            var branches = _gitService.UpdateLocalRepo(_environment, $"{userName.ToLower()}-{repoName.ToLower()}", branch);
             var model = new RepoInfoViewModel
             {
                 RepoRootPath = $"/{userName}/{repoName}",
@@ -158,12 +158,9 @@ namespace Identity.Controllers
         public async Task<IActionResult> AddNewRepo(AddNewRepoViewModel model)
         {
             ViewData["Success"] = "Repository was successfully created";
-            ViewData["Error"] = "Something went wrong";
-            if (!_signInManager.IsSignedIn(HttpContext.User))
-                return RedirectToAction("Index");
             var user = await _userManager.GetUserAsync(HttpContext.User);
             var fixedUser = _context.Users.Include(u => u.Repos).First(u => String.Equals(u.Id, user.Id));
-            GitRepo.AddRepo(_context,_environment,_gitService,fixedUser, model.RepoName, model.IsPublic);
+            GitRepo.AddRepo(_context, _environment, _gitService, fixedUser, model.RepoName, model.IsPublic);
             return RedirectToAction("Index");
         }
 
@@ -171,7 +168,9 @@ namespace Identity.Controllers
         {
             var model = new ProfileViewModel();
             var user =
-                _context.Users.Include(u => u.Repos).First(u => String.Equals(u.UserName.ToLower(), userName.ToLower()));
+                _context.Users.Include(u => u.Repos).FirstOrDefault(u => String.Equals(u.UserName.ToLower(), userName.ToLower()));
+            if (user == null)
+                return new StatusCodeResult(404);
             model.UserName = userName;
             model.PublicRepos = user.Repos.Where(r => r.IsPublic).ToList();
             return View(model);
@@ -181,38 +180,31 @@ namespace Identity.Controllers
         {
             var repo =
                 _context.Repos.Include(r => r.Author)
-                    .First(
+                    .FirstOrDefault(
                         r =>
                             String.Equals(r.RepoName.ToLower(), repoName.ToLower()) &&
                             String.Equals(r.Author.UserName.ToLower(), userName.ToLower()));
             if (repo == null)
-                RedirectToAction("Error");
+                return StatusCode(404);
             var user = await _userManager.GetUserAsync(HttpContext.User);
             if (!repo.CheckAccess(user))
-                RedirectToAction("Error");
+                return StatusCode(403);
             var fullRepoName = $"{userName.ToLower()}-{repoName.ToLower()}";
-            var branches = _gitService.UpdateLocalRepo(_environment,fullRepoName,branch);
+            var branches = _gitService.UpdateLocalRepo(_environment, fullRepoName, branch);
             var file = $"{_environment.WebRootPath}/Repos/{fullRepoName}/{path}";
             if (!System.IO.File.Exists(file))
-                RedirectToAction("Error");
+                return new StatusCodeResult(404);
             var model = new ViewFileViewModel
             {
                 RepoRootPath = $"/{userName}/{repoName}",
-                Path = new List<string>(new[] {userName, repoName}),
+                Path = new List<string>(new[] { userName, repoName }),
                 Branches = branches,
                 CurrentBranchIndex = branches.IndexOf(branch)
             };
-            if (!String.IsNullOrWhiteSpace(path))
-            {
-                var pathElements = path.Split('/');
-                for (var i = 0; i < pathElements.Length - 1; i++)
-                    model.Path.Add(pathElements[i]);
-                model.FileName = pathElements[pathElements.Length - 1];
-            }
-            else
-            {
-                RedirectToAction("Error");
-            }
+            var pathElements = path.Split('/');
+            for (var i = 0; i < pathElements.Length - 1; i++)
+                model.Path.Add(pathElements[i]);
+            model.FileName = pathElements[pathElements.Length - 1];
             var fs = new FileStream(file, FileMode.Open);
             using (var sr = new StreamReader(fs, GetEncoding(file)))
             {
@@ -224,6 +216,12 @@ namespace Identity.Controllers
 
         public IActionResult Error()
         {
+            return View();
+        }
+
+        public IActionResult Errors(int id)
+        {
+            //Todo: implement
             return View();
         }
 
