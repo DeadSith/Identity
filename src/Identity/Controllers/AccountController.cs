@@ -8,8 +8,6 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 
-//Todo: implement RequireConfirmation page
-
 namespace Identity.Controllers
 {
     [Authorize]

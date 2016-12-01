@@ -1,0 +1,34 @@
+﻿@model ErrorViewModel
+@{
+    ViewData["Title"] = "Error";
+}
+
+
+@if (Model.ErrorCode != 0)
+{
+    <h1 class="text-danger">
+        Error
+        <strong>
+            @Model.ErrorCode.
+        </strong>
+    </h1>
+}
+else
+{
+    <h1 class="text-danger">
+        Unknown error.
+    </h1>
+}
+
+@if (String.IsNullOrWhiteSpace(Model.ErrorMessage))
+{
+    <h2 class="text-danger">
+        An error occurred while processing your request.
+    </h2>
+}
+else
+{
+    <h2 class="text-danger">
+        @Model.ErrorMessage
+    </h2>
+}

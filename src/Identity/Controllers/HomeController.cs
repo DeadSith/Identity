@@ -193,7 +193,7 @@ namespace Identity.Controllers
             var branches = _gitService.UpdateLocalRepo(_environment, fullRepoName, branch);
             var file = $"{_environment.WebRootPath}/Repos/{fullRepoName}/{path}";
             if (!System.IO.File.Exists(file))
-                return new StatusCodeResult(404);
+                return RedirectToRoute("Error", new {id = 700});
             var model = new ViewFileViewModel
             {
                 RepoRootPath = $"/{userName}/{repoName}",
@@ -212,17 +212,6 @@ namespace Identity.Controllers
                 model.FileContent = content.Split('\n');
             }
             return View(model);
-        }
-
-        public IActionResult Error()
-        {
-            return View();
-        }
-
-        public IActionResult Errors(int id)
-        {
-            //Todo: implement
-            return View();
         }
 
         //Todo

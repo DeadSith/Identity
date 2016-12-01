@@ -72,15 +72,15 @@ namespace Identity
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
-            if (env.IsDevelopment())
+            if (!env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
                 app.UseDatabaseErrorPage();
             }
             else
             {
-                app.UseStatusCodePagesWithReExecute("/Home/Errors/{0}");
-                //app.UseExceptionHandler("/Home/Error");
+                app.UseStatusCodePagesWithReExecute("/Error/{0}");
+                app.UseExceptionHandler("/Error");
             }
 
             app.UseStaticFiles();
@@ -94,8 +94,8 @@ namespace Identity
                     template: "{controller=Home}/{action=Index}/{id?}");
                 routes.MapRoute(
                     name: "Error",
-                    template: "Error",
-                    defaults: new { controller = "Home", action = "Error" }
+                    template: "Error/{id?}",
+                    defaults: new { controller = "Error",action = "ErrorParser"}
                 );
                 routes.MapRoute(
                     name: "Profile",
