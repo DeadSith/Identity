@@ -1,6 +1,19 @@
 ﻿@using System.Text
 @model IRepoView
 
+@{
+    var currentBranch = "HEAD";
+}
+
+@if (Model.CurrentBranchIndex < 0 || Model.CurrentBranchIndex >= Model.Branches.Count)
+{
+    Model.CurrentBranchIndex = 0;
+}
+else
+{
+    currentBranch = $"{Model.Branches[Model.CurrentBranchIndex]}";
+}
+
 <nav class="navbar navbar-default">
     <div class="container-fluid">
         <div class="navbar-header">
@@ -10,14 +23,14 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="@Model.RepoRootPath/@Model.Branches[Model.CurrentBranchIndex]">Root</a>
+            <a class="navbar-brand" href="@Model.RepoRootPath/@currentBranch">Root</a>
         </div>
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
           <ul class="nav navbar-nav">
             @if (Model.Branches.Count > 1)
             {
                 <li class="dropdown">
-                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">@Model.Branches[Model.CurrentBranchIndex] <span class="caret"></span></a>
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">@currentBranch <span class="caret"></span></a>
                   <ul class="dropdown-menu">
                     @foreach (var branch in Model.Branches)
                     {
@@ -28,7 +41,7 @@
             }
             @for (var i = 2; i < Model.Path.Count; i++)
             {
-                var path = new StringBuilder($"{Model.RepoRootPath}/{Model.Branches[Model.CurrentBranchIndex]}/");
+                var path = new StringBuilder($"{Model.RepoRootPath}/{currentBranch}/");
                 for (var j = 2; j <= i; j++)
                 {
                     path.Append(Model.Path[j] + "/");
@@ -43,7 +56,7 @@
           </ul>
             <ul class="nav navbar-nav navbar-right">
                 @{
-                    var repoPath = new StringBuilder($"{Model.RepoRootPath}/{Model.Branches[Model.CurrentBranchIndex]}/");
+                    var repoPath = new StringBuilder($"{Model.RepoRootPath}/{currentBranch}/");
                     for (var j = 2; j < Model.Path.Count; j++)
                     {
                         repoPath.Append(Model.Path[j] + "/");

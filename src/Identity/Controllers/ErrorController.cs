@@ -39,6 +39,8 @@ namespace Identity.Controllers
                     return "There is no such file/repo.";
                 case 700:
                     return "This repository/branch doesn't contain requested file.";
+                case 701:
+                    return "This repository is empty! You have to push to it before viewing.";
                 default:
                     return "";
             }

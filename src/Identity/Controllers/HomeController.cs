@@ -16,7 +16,6 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Html;
 
-//Todo: Fix working with empty branche and add HEAD support
 namespace Identity.Controllers
 {
     public class HomeController : Controller
@@ -114,7 +113,7 @@ namespace Identity.Controllers
             return View(model);
         }
 
-        //Todo: show repo info
+        //Todo: show branches and latest commit date
         [HttpGet]
         public async Task<IActionResult> RepoInfo(string userName, string repoName, string branch, string path)
         {
@@ -212,12 +211,6 @@ namespace Identity.Controllers
                 model.FileContent = content.Split('\n');
             }
             return View(model);
-        }
-
-        //Todo
-        public IActionResult ClearCache(IRepoView model)
-        {
-            throw new NotImplementedException();
         }
 
         #region Helpers
