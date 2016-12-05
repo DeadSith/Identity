@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Identity.Models
 {
@@ -7,8 +8,9 @@ namespace Identity.Models
     {
         public GitRepo Repo { get; set; }
         public string Author { get; set; }
-        public string SHA { get; set; }
+        public string AuthorEmail { get; set; }
         public string Description { get; set; }
         public DateTime CommitTime { get; set; }
+        public Dictionary<string, Tuple<int,int>> Changes { get; set; }
     }
 }

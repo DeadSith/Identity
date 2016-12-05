@@ -9,5 +9,6 @@ namespace Identity.Models.HomeViewModels
         public List<string> Branches { get; set; }
         public int CurrentBranchIndex { get; set; }
         public string RepoUri { get; set; }
+        public GitCommit CurrentCommit { get; set; }
     }
 }

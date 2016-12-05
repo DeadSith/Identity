@@ -135,7 +135,8 @@ namespace Identity.Controllers
                 Path = new List<string>(new[] { userName, repoName }),
                 RepoUri = $"{_gitService.GitServer}:{userName.ToLower()}-{repoName.ToLower()}",
                 Branches = branches,
-                CurrentBranchIndex = branches.IndexOf(branch)
+                CurrentBranchIndex = branches.IndexOf(branch),
+                CurrentCommit = _gitService.Info(_environment, $"{userName.ToLower()}-{repoName.ToLower()}")
             };
             if (!String.IsNullOrWhiteSpace(path))
             {

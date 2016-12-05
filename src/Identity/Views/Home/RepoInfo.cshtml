@@ -7,15 +7,77 @@
 @await Component.InvokeAsync("RepoBar", new {repoView = (IRepoView)Model, activePage = "Info"})
 
 <br /><br />
-<dl class="dl-horizontal">
-    <dt>Clone uri:</dt>
-    <dd>
-        @Model.RepoUri
-    </dd>
-    <dt>
-        Other info
-    </dt>
-    <dd>
-        Will go here
-    </dd>
-</dl>
+<table class="table table-hover">
+  <tr>
+    <td>
+      Clone uri:
+    </td>
+    <td>
+      @Model.RepoUri
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Number of branches
+    </td>
+    <td>
+      @Model.Branches.Count
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Other info
+    </td>
+    <td>
+      Will go here
+    </td>
+  </tr>
+</table>
+@if (Model.CurrentCommit != null)
+{
+    <h4>
+      Latest commit information:
+    </h4>
+    <table class="table table-hover">
+      <tr>
+        <td>
+          Author
+        </td>
+        <td>
+          @Model.CurrentCommit.Author
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Commited on
+        </td>
+        <td>
+          @Model.CurrentCommit.CommitTime
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Description
+        </td>
+        <td>
+          @Model.CurrentCommit.Description
+        </td>
+      </tr>
+    </table>
+    <h4>
+      File changes:
+    </h4>
+    <table class="table table-hover">
+      @foreach (var pair in Model.CurrentCommit.Changes)
+      {
+          <tr>
+            <td>
+              @pair.Key
+            </td>
+            <td>
+              @pair.Value.Item1 additions, @pair.Value.Item2 deletions
+            </td>
+          </tr>
+      }
+    </table>
+}

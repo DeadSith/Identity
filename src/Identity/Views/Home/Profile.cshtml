@@ -4,18 +4,37 @@
     ViewData["Title"] = @Model.UserName;
 }
 
-<dl class="dl-horizontal">
-    <dt>Username:</dt>
-    <dd>
-        @Model.UserName
-    </dd>
-    <dt>
-        Other info
-    </dt>
-    <dd>
-        Will go here
-    </dd>
-</dl>
+
+<table class="table table-hover">
+  <tr>
+    <td>
+      UserName
+    </td>
+    <td>
+      @Model.UserName
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Number of repos
+    </td>
+    <td>
+      @Model.PublicRepos.Count
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Other info
+    </td>
+    <td>
+      Will go here
+    </td>
+  </tr>
+</table>
+
+<h4>
+  Public Repos
+</h4>
 
 <ul class="list-group">
     @if (Model.PublicRepos.Count == 0)

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Hosting;
 
 namespace Identity.Services
@@ -87,12 +88,31 @@ namespace Identity.Services
             StartGit($" checkout origin/{branchName}", repoPath);
         }
 
-        public GitCommit Info(string directory, string sha = "")
+        public GitCommit Info(IHostingEnvironment environment, string repoName)
         {
-            var result = StartGit(" log -1", directory);
-            //Todo: parse result
-            throw new NotImplementedException();
-            return new GitCommit();
+            var repoPath = $"{environment.WebRootPath}/Repos/{repoName}";
+            var gitResult = StartGit(" log -1 --numstat --date=raw", repoPath);
+            var regex = new Regex(@"Author: (.+) <(.+)>[\n ]*Date:[\n ]*(.\d+)[ +\d]*[\n ]*(.+)[\n ]",RegexOptions.IgnoreCase);
+            var match = regex.Matches(gitResult);
+            if (match.Count == 0)
+                return null;
+            var result = new GitCommit
+            {
+                Author = match[0].Groups[1].Value,
+                AuthorEmail = match[0].Groups[2].Value,
+                //Todo: fix timezones
+                CommitTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(match[0].Groups[3].Value)).DateTime,
+                Description = match[0].Groups[4].Value,
+                Changes = new Dictionary<string, Tuple<int, int>>()
+            };
+            regex = new Regex(@"(\d[ \n]*\d[ \n]*.+\n)",RegexOptions.IgnoreCase);
+            match = regex.Matches(gitResult);
+            for (int i = 2; i < match.Count; i++)
+            {
+                var elements = match[i].Value.Split(' ', '\t');
+                result.Changes[elements[2]] = new Tuple<int, int>(int.Parse(elements[0]),int.Parse(elements[1]));
+            }
+            return result;
         }
 
         public List<string> UpdateLocalRepo(IHostingEnvironment environment, string repoName, string branch)
@@ -100,7 +120,7 @@ namespace Identity.Services
             var path = environment.WebRootPath + "/Repos";
             if (!Directory.Exists($"{path}/{repoName}"))
                 this.Clone(path, repoName);
-            this.Pull(path, repoName);
+            //this.Pull(path, repoName);
             var res = this.GetBranches($"{path}/{repoName}");
             if(!String.Equals("HEAD",branch)&&!res.Contains(branch))
                 throw new ArgumentException();
@@ -125,6 +145,11 @@ namespace Identity.Services
             var stdout_str = sshProcess.StandardOutput.ReadToEnd();
             sshProcess.WaitForExit();
             return stdout_str.Split('\n').ToList();
+        }
+
+        public int GetNumberOfCommits(string repoPath)
+        {
+            throw new NotImplementedException();
         }
     }
 }

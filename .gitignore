@@ -8,7 +8,10 @@ dbsettings.json
 *.user
 *.userosscache
 *.sln.docstates
-.idea/
+
+
+**/.idea/workspace.xml 
+**/.idea/tasks.xml
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
