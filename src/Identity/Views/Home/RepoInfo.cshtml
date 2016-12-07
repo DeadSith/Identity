@@ -41,6 +41,14 @@
     <table class="table table-hover">
       <tr>
         <td>
+          Hash
+        </td>
+        <td>
+          @Model.CurrentCommit.Hash
+        </td>
+      </tr>
+      <tr>
+        <td>
           Author
         </td>
         <td>
@@ -75,7 +83,7 @@
               @pair.Key
             </td>
             <td>
-              @pair.Value.Item1 additions, @pair.Value.Item2 deletions
+              <font color="green">@pair.Value.Item1 additions</font>, <font color="red">@pair.Value.Item2 deletions</font>
             </td>
           </tr>
       }

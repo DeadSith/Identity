@@ -92,17 +92,18 @@ namespace Identity.Services
         {
             var repoPath = $"{environment.WebRootPath}/Repos/{repoName}";
             var gitResult = StartGit(" log -1 --numstat --date=raw", repoPath);
-            var regex = new Regex(@"Author: (.+) <(.+)>[\n ]*Date:[\n ]*(.\d+)[ +\d]*[\n ]*(.+)[\n ]",RegexOptions.IgnoreCase);
+            var regex = new Regex(@"commit (.+)\nAuthor: (.+) <(.+)>[\n ]*Date:[\n ]*(.\d+)[ +\d]*[\n ]*(.+)[\n ]",RegexOptions.IgnoreCase);
             var match = regex.Matches(gitResult);
             if (match.Count == 0)
                 return null;
             var result = new GitCommit
             {
-                Author = match[0].Groups[1].Value,
-                AuthorEmail = match[0].Groups[2].Value,
+                Hash = match[0].Groups[1].Value,
+                Author = match[0].Groups[2].Value,
+                AuthorEmail = match[0].Groups[3].Value,
                 //Todo: fix timezones
-                CommitTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(match[0].Groups[3].Value)).DateTime,
-                Description = match[0].Groups[4].Value,
+                CommitTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(match[0].Groups[4].Value)).DateTime,
+                Description = match[0].Groups[5].Value,
                 Changes = new Dictionary<string, Tuple<int, int>>()
             };
             regex = new Regex(@"(\d[ \n]*\d[ \n]*.+\n)",RegexOptions.IgnoreCase);
@@ -145,6 +146,36 @@ namespace Identity.Services
             var stdout_str = sshProcess.StandardOutput.ReadToEnd();
             sshProcess.WaitForExit();
             return stdout_str.Split('\n').ToList();
+        }
+
+        public CommitChanges GetCommitChanges(IHostingEnvironment environment,string repoName, string hash)
+        {
+            var gitResult = StartGit($" show {hash}", $"{environment.WebRootPath}/Repos/{repoName}");
+            if (String.IsNullOrWhiteSpace(gitResult))
+                throw new ArgumentException("No commit with specified hash");
+            gitResult = gitResult + "diff --git";
+            var regex = new Regex(@"\+\+\+ b\/(.*)\n(?s:(.*?))diff --git");
+            var matches = regex.Matches(gitResult);
+            var result = new CommitChanges {Changes = new Dictionary<string, string>(matches.Count)};
+            foreach (Match match in matches)
+            {
+                result.Changes[match.Groups[1].Value] = match.Groups[2].Value;
+            }
+            regex = new Regex(@".*b\/(.*)\n(?s:deleted file mode .*?)diff --git");
+            matches = regex.Matches(gitResult);
+            result.DeletedFiles = new List<string>(matches.Count);
+            foreach (Match match in matches)
+            {
+                result.DeletedFiles.Add(match.Groups[1].Value);
+            }
+            regex = new Regex(@".*b\/(.*)\n(?s:new file mode .*?)diff --git");
+            matches = regex.Matches(gitResult);
+            result.NewFiles = new List<string>(matches.Count);
+            foreach (Match match in matches)
+            {
+                result.NewFiles.Add(match.Groups[1].Value);
+            }
+            return result;
         }
 
         public int GetNumberOfCommits(string repoPath)

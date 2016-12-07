@@ -119,7 +119,7 @@ namespace Identity.Controllers
         {
             var repo =
                _context.Repos.Include(r => r.Author)
-                   .First(
+                   .FirstOrDefault(
                        r =>
                            String.Equals(r.RepoName.ToLower(), repoName.ToLower()) &&
                            String.Equals(r.Author.UserName.ToLower(), userName.ToLower()));
@@ -212,6 +212,24 @@ namespace Identity.Controllers
                 model.FileContent = content.Split('\n');
             }
             return View(model);
+        }
+
+        public async Task<IActionResult> CommitInfo(string userName, string repoName, string branch, string hash)
+        {
+            var repo =
+                _context.Repos.Include(r => r.Author)
+                    .FirstOrDefault(
+                        r =>
+                            String.Equals(r.RepoName.ToLower(), repoName.ToLower()) &&
+                            String.Equals(r.Author.UserName.ToLower(), userName.ToLower()));
+            if (repo == null)
+                return StatusCode(404);
+            var user = await _userManager.GetUserAsync(HttpContext.User);
+            if (!repo.CheckAccess(user))
+                return StatusCode(403);
+            var fullRepoName = $"{userName.ToLower()}-{repoName.ToLower()}";
+            var branches = _gitService.UpdateLocalRepo(_environment, fullRepoName, branch);
+            throw new NotImplementedException();
         }
 
         #region Helpers

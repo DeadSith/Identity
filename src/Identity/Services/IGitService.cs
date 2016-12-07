@@ -37,6 +37,18 @@ namespace Identity.Services
 
         List<string> GetAllRepos();
 
+        /// <summary>
+        /// Parses git show of specified commit
+        /// Note: does not switch branch!
+        /// </summary>
+        /// <param name="environment">Current working environment</param>
+        /// <param name="repoName">Name of repo to view</param>
+        /// <param name="hash">Hash of desired commits</param>
+        /// <returns>
+        /// Changes made in commit with specified hash
+        /// </returns>
+        CommitChanges GetCommitChanges(IHostingEnvironment environment, string repoName, string hash);
+
         int GetNumberOfCommits(string repoPath);
     }
 }

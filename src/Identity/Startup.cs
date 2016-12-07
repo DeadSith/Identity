@@ -103,6 +103,10 @@ namespace Identity
                     defaults: new { controller = "Home", action = "Profile" }
                 );
                 routes.MapRoute(
+                        name: "CommitInfo",
+                        template:"{userName}/{repoName}/{branch}/{hash:minlength(40):maxlength(40)}",
+                        defaults: new {controller = "Home", action = "CommitInfo"});
+                routes.MapRoute(
                     name: "RepoInfo",
                     template: "Info/{userName}/{repoName}/{branch}/{*path}",
                     defaults: new { controller = "Home", action = "RepoInfo" });
