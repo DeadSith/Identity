@@ -1,0 +1,55 @@
+﻿@using System.Collections.Generic
+@using System.Threading.Tasks
+@model CommitInfoViewModel
+@{
+    ViewData["Title"] = "Commit Info";
+}
+
+<script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js"></script>
+
+@await Component.InvokeAsync("RepoBar", new {repoView = (IRepoView)Model, activePage = "None"})
+
+@if (Model.Changes.NewFiles.Count > 0)
+{
+    <h4>
+      New files:
+    </h4>
+    foreach (var file in Model.Changes.NewFiles)
+    {
+        <p style="color: green">
+          @file
+        </p>
+        <br/>
+    }
+}
+@if (Model.Changes.DeletedFiles.Count > 0)
+{
+    <h4>
+      Deleted files:
+    </h4>
+    foreach (var file in Model.Changes.DeletedFiles)
+    {
+        <p style="color: red">
+          @file
+        </p>
+        <br/>
+    }
+}
+
+@foreach (var pair in Model.Changes.Changes)
+{
+    <div class="panel panel-primary">
+      <div class="panel-heading">
+        <h4 class="panel-title">@pair.Key</h4>
+      </div>
+      <div class="panel-body">
+        <code class="prettyprint">
+          @foreach (var line in pair.Value)
+          {
+              @line
+              <br />
+          }
+        </code>
+      </div>
+    </div>
+}

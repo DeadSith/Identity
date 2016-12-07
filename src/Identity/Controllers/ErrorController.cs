@@ -41,6 +41,8 @@ namespace Identity.Controllers
                     return "This repository/branch doesn't contain requested file.";
                 case 701:
                     return "This repository is empty! You have to push to it before viewing.";
+                case 702:
+                    return "No commit with specified hash";
                 default:
                     return "";
             }

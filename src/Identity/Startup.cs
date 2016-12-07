@@ -104,7 +104,7 @@ namespace Identity
                 );
                 routes.MapRoute(
                         name: "CommitInfo",
-                        template:"{userName}/{repoName}/{branch}/{hash:minlength(40):maxlength(40)}",
+                        template:"{userName}/{repoName}/{branch}/Commit/{hash:minlength(40):maxlength(40)}",
                         defaults: new {controller = "Home", action = "CommitInfo"});
                 routes.MapRoute(
                     name: "RepoInfo",

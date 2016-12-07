@@ -229,7 +229,24 @@ namespace Identity.Controllers
                 return StatusCode(403);
             var fullRepoName = $"{userName.ToLower()}-{repoName.ToLower()}";
             var branches = _gitService.UpdateLocalRepo(_environment, fullRepoName, branch);
-            throw new NotImplementedException();
+            CommitChanges changes;
+            try
+            {
+                changes = _gitService.GetCommitChanges(_environment, fullRepoName, hash);
+            }
+            catch (Exception ex)
+            {
+                return RedirectToRoute("Error", new {id = 702});
+            }
+            var model = new CommitInfoViewModel
+            {
+                Changes = changes,
+                RepoRootPath = $"/{userName}/{repoName}",
+                Path = new List<string>(new[] { userName, repoName }),
+                Branches = branches,
+                CurrentBranchIndex = branches.IndexOf(branch)
+            };
+            return View(model);
         }
 
         #region Helpers

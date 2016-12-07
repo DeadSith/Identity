@@ -121,7 +121,7 @@ namespace Identity.Services
             var path = environment.WebRootPath + "/Repos";
             if (!Directory.Exists($"{path}/{repoName}"))
                 this.Clone(path, repoName);
-            //this.Pull(path, repoName);
+            this.Pull(path, repoName);
             var res = this.GetBranches($"{path}/{repoName}");
             if(!String.Equals("HEAD",branch)&&!res.Contains(branch))
                 throw new ArgumentException();
@@ -156,10 +156,10 @@ namespace Identity.Services
             gitResult = gitResult + "diff --git";
             var regex = new Regex(@"\+\+\+ b\/(.*)\n(?s:(.*?))diff --git");
             var matches = regex.Matches(gitResult);
-            var result = new CommitChanges {Changes = new Dictionary<string, string>(matches.Count)};
+            var result = new CommitChanges {Changes = new Dictionary<string, string[]>(matches.Count)};
             foreach (Match match in matches)
             {
-                result.Changes[match.Groups[1].Value] = match.Groups[2].Value;
+                result.Changes[match.Groups[1].Value] = match.Groups[2].Value.Split('\n');
             }
             regex = new Regex(@".*b\/(.*)\n(?s:deleted file mode .*?)diff --git");
             matches = regex.Matches(gitResult);
