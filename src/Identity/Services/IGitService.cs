@@ -50,5 +50,7 @@ namespace Identity.Services
         CommitChanges GetCommitChanges(IHostingEnvironment environment, string repoName, string hash);
 
         int GetNumberOfCommits(string repoPath);
+
+        List<GitCommit> GetRepoCommitHistory(IHostingEnvironment environment, string repoName);
     }
 }

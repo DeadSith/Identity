@@ -82,6 +82,14 @@ else
                 {
                     <li><a href="@infoPath">Info</a></li>
                 }
+                @if (ViewBag.IsHitoryActive == true)
+                {
+                    <li class="active"><a href="@Model.RepoRootPath/@currentBranch/History">History<span class="sr-only">(current)</span></a></li>
+                }
+                else
+                {
+                    <li><a href="@Model.RepoRootPath/@currentBranch/History">History</a></li>
+                }
             </ul>
         </div>
     </div>

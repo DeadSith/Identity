@@ -12,6 +12,8 @@ namespace Identity.ViewComponents
         {
             if (String.Equals(activePage, "Info"))
                 ViewBag.IsInfoActive = true;
+            else if (String.Equals(activePage, "History"))
+                ViewBag.IsHitoryActive = true;
             else if (String.Equals(activePage, "Repo"))
                 ViewBag.IsFolderViewActive = true;
             return View(repoView);

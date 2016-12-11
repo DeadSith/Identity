@@ -1,0 +1,60 @@
+﻿@model CommitHistoryViewModel
+@{
+    ViewData["Title"] = "Commit History";
+}
+
+@{
+    var currentBranch = "HEAD";
+}
+
+@if (Model.CurrentBranchIndex < 0 || Model.CurrentBranchIndex >= Model.Branches.Count)
+{
+    Model.CurrentBranchIndex = 0;
+}
+else
+{
+    currentBranch = $"{Model.Branches[Model.CurrentBranchIndex]}";
+}
+
+@await Component.InvokeAsync("RepoBar", new {repoView = (IRepoView)Model, activePage = "History"})
+
+@foreach (var commit in Model.Commits)
+{
+    <div class="panel panel-primary">
+      <div class="panel-heading">
+        <h4 class="panel-title">
+          <a href="@Model.RepoRootPath/@currentBranch/Commit/@commit.Hash">
+            @commit.Hash
+          </a>
+        </h4>
+      </div>
+      <div class="panel-body">
+        <table class="table table-hover">
+          <tr>
+            <td>
+              Author:
+            </td>
+            <td>
+              @commit.Author
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Commit Date:
+            </td>
+            <td>
+              @commit.CommitTime
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Description:
+            </td>
+            <td>
+              @commit.Description
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+}

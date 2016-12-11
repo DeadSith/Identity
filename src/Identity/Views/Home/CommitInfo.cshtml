@@ -7,7 +7,7 @@
 
 <script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js"></script>
 
-@await Component.InvokeAsync("RepoBar", new {repoView = (IRepoView)Model, activePage = "None"})
+@await Component.InvokeAsync("RepoBar", new {repoView = (IRepoView)Model, activePage = "History"})
 
 @if (Model.Changes.NewFiles.Count > 0)
 {

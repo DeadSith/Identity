@@ -1,4 +1,5 @@
-﻿@model RepoInfoViewModel
+﻿@using System.Linq
+@model RepoInfoViewModel
 
 @{
     ViewData["Title"] = "Info";
@@ -72,20 +73,23 @@
         </td>
       </tr>
     </table>
-    <h4>
-      File changes:
-    </h4>
-    <table class="table table-hover">
-      @foreach (var pair in Model.CurrentCommit.Changes)
-      {
-          <tr>
-            <td>
-              @pair.Key
-            </td>
-            <td>
-              <font color="green">@pair.Value.Item1 additions</font>, <font color="red">@pair.Value.Item2 deletions</font>
-            </td>
-          </tr>
-      }
-    </table>
+if (Model.CurrentCommit.Changes.Any())
+ {
+     <h4>
+       File changes:
+     </h4>
+     <table class="table table-hover">
+       @foreach (var pair in Model.CurrentCommit.Changes)
+       {
+           <tr>
+             <td>
+               @pair.Key
+             </td>
+             <td>
+               <span style="color: green">@pair.Value.Item1 additions</span>, <span style="color: red">@pair.Value.Item2 deletions</span>
+             </td>
+           </tr>
+       }
+     </table>
+ }
 }

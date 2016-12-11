@@ -110,8 +110,15 @@ namespace Identity.Services
             match = regex.Matches(gitResult);
             for (int i = 2; i < match.Count; i++)
             {
-                var elements = match[i].Value.Split(' ', '\t');
-                result.Changes[elements[2]] = new Tuple<int, int>(int.Parse(elements[0]),int.Parse(elements[1]));
+                try
+                {
+                    var elements = match[i].Value.Split(' ', '\t');
+                    result.Changes[elements[2]] = new Tuple<int, int>(int.Parse(elements[0]), int.Parse(elements[1]));
+                }
+                catch (Exception ex)
+                {
+                    i++;
+                }
             }
             return result;
         }
@@ -181,6 +188,28 @@ namespace Identity.Services
         public int GetNumberOfCommits(string repoPath)
         {
             throw new NotImplementedException();
+        }
+
+        public List<GitCommit> GetRepoCommitHistory(IHostingEnvironment environment, string repoName)
+        {
+            var repoPath = $"{environment.WebRootPath}/Repos/{repoName}";
+            var gitResult = StartGit(" log --date=raw", repoPath);
+            var regex = new Regex(@"commit (.+)\nAuthor: (.+) <(.+)>[\n ]*Date:[\n ]*(.\d+)[ +\d]*[\n ]*(.+)[\n ]",RegexOptions.IgnoreCase);
+            var matches = regex.Matches(gitResult);
+            if (matches.Count == 0)
+                throw new ArgumentException();
+            var result = new List<GitCommit>(matches.Count);
+            result.AddRange(from Match match in matches
+                select new GitCommit
+                {
+                    Hash = match.Groups[1].Value,
+                    Author = match.Groups[2].Value,
+                    AuthorEmail = match.Groups[3].Value,
+                    //Todo: fix timezones
+                    CommitTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(match.Groups[4].Value)).DateTime,
+                    Description = match.Groups[5].Value
+                });
+            return result;
         }
     }
 }

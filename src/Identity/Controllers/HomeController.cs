@@ -216,6 +216,8 @@ namespace Identity.Controllers
 
         public async Task<IActionResult> CommitInfo(string userName, string repoName, string branch, string hash)
         {
+            if(hash.Length!=40)
+                return StatusCode(404);
             var repo =
                 _context.Repos.Include(r => r.Author)
                     .FirstOrDefault(
@@ -241,6 +243,41 @@ namespace Identity.Controllers
             var model = new CommitInfoViewModel
             {
                 Changes = changes,
+                RepoRootPath = $"/{userName}/{repoName}",
+                Path = new List<string>(new[] { userName, repoName }),
+                Branches = branches,
+                CurrentBranchIndex = branches.IndexOf(branch)
+            };
+            return View(model);
+        }
+
+        public async Task<IActionResult> CommitHistory(string userName, string repoName, string branch, string path)
+        {
+            var repo =
+                _context.Repos.Include(r => r.Author)
+                    .FirstOrDefault(
+                        r =>
+                            String.Equals(r.RepoName.ToLower(), repoName.ToLower()) &&
+                            String.Equals(r.Author.UserName.ToLower(), userName.ToLower()));
+            if (repo == null)
+                return StatusCode(404);
+            var user = await _userManager.GetUserAsync(HttpContext.User);
+            if (!repo.CheckAccess(user))
+                return StatusCode(403);
+            var fullRepoName = $"{userName.ToLower()}-{repoName.ToLower()}";
+            var branches = _gitService.UpdateLocalRepo(_environment, fullRepoName, branch);
+            List<GitCommit> hisrory;
+            try
+            {
+                hisrory = _gitService.GetRepoCommitHistory(_environment, fullRepoName);
+            }
+            catch (Exception ex)
+            {
+                return RedirectToRoute("Error", new {id = 702});
+            }
+            var model = new CommitHistoryViewModel
+            {
+                Commits = hisrory,
                 RepoRootPath = $"/{userName}/{repoName}",
                 Path = new List<string>(new[] { userName, repoName }),
                 Branches = branches,
