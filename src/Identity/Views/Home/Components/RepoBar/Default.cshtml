@@ -41,14 +41,14 @@ else
             }
             @for (var i = 2; i < Model.Path.Count; i++)
             {
-                var path = new StringBuilder($"{Model.RepoRootPath}/{currentBranch}/");
+                var path = new StringBuilder();
                 for (var j = 2; j <= i; j++)
                 {
                     path.Append(Model.Path[j] + "/");
                 }
                 path.Remove(path.Length - 1, 1);
                 <li>
-                  <a href="@path.ToString()">
+                  <a href="@Model.RepoRootPath/@currentBranch/@path.ToString()">
                     @Model.Path[i]
                   </a>
                 </li>
@@ -56,23 +56,26 @@ else
           </ul>
             <ul class="nav navbar-nav navbar-right">
                 @{
-                    var repoPath = new StringBuilder($"{Model.RepoRootPath}/{currentBranch}/");
+                    var repoPath = new StringBuilder();
                     for (var j = 2; j < Model.Path.Count; j++)
                     {
                         repoPath.Append(Model.Path[j] + "/");
                     }
-                    repoPath.Remove(repoPath.Length - 1, 1);
+                    if (repoPath.Length > 0)
+                    {
+                        repoPath.Remove(repoPath.Length - 1, 1);
+                    }
                 }
                 @if (ViewBag.IsFolderViewActive == true)
                 {
-                    <li class="active"><a href="@repoPath">Files <span class="sr-only">(current)</span></a></li>
+                    <li class="active"><a href="@Model.RepoRootPath/@currentBranch/@repoPath">Files <span class="sr-only">(current)</span></a></li>
                 }
                 else
                 {
-                    <li><a href="@repoPath">Files</a></li>
+                    <li><a href="@Model.RepoRootPath/@currentBranch/@repoPath">Files</a></li>
                 }
                 @{
-                    var infoPath = "/Info"+repoPath.ToString();
+                    var infoPath = $"{Model.RepoRootPath}/{currentBranch}/Info/{repoPath}";
                 }
                 @if (ViewBag.IsInfoActive == true)
                 {

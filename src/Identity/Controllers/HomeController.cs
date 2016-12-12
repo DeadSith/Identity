@@ -271,9 +271,10 @@ namespace Identity.Controllers
             {
                 hisrory = _gitService.GetRepoCommitHistory(_environment, fullRepoName);
             }
+//Todo: implement 703 error
             catch (Exception ex)
             {
-                return RedirectToRoute("Error", new {id = 702});
+                return RedirectToRoute("Error", new {id = 703});
             }
             var model = new CommitHistoryViewModel
             {

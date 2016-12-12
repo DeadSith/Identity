@@ -42,7 +42,9 @@ namespace Identity.Controllers
                 case 701:
                     return "This repository is empty! You have to push to it before viewing.";
                 case 702:
-                    return "No commit with specified hash";
+                    return "No commit with specified hash.";
+                case 703:
+                    return "This repository is empty, add at least 1 commit before trying to view history.";
                 default:
                     return "";
             }

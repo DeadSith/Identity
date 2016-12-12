@@ -112,7 +112,7 @@ namespace Identity
                     defaults: new {controller = "Home", action = "CommitHistory"});
                 routes.MapRoute(
                     name: "RepoInfo",
-                    template: "Info/{userName}/{repoName}/{branch}/{*path}",
+                    template: "{userName}/{repoName}/{branch}/Info/{*path}",
                     defaults: new { controller = "Home", action = "RepoInfo" });
                 routes.MapRoute(
                     name: "ViewFile",
