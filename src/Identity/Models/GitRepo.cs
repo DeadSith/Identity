@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
@@ -19,10 +20,12 @@ namespace Identity.Models
 
         public ApplicationUser Author { get; set; }
 
+        public List<ApplicationUser> AllowedUser { get; set; }
+
 
         public bool CheckAccess(ApplicationUser user)
         {
-            return this.IsPublic || String.Equals(this.Author.UserName, user.UserName);
+            return this.IsPublic ||this.AllowedUser.Contains(user) ||String.Equals(this.Author.UserName, user.UserName);
         }
 
         public static void AddRepo(ApplicationDbContext context, IHostingEnvironment environment, IGitService gitService, ApplicationUser user, string repositoryName, bool isPublic)

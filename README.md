@@ -6,5 +6,5 @@ Asp.Net Core git server
 3. Configure gitolite
 4. Add your gitolite admin to git group
 5. Allow RW access to repositories folder for this group
-6. Edit .gitolite.rc to make standard permission ___
+6. Edit .gitolite.rc to make standard permission 0027
 7. Change gitolite-admin config

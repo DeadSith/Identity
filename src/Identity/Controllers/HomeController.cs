@@ -43,11 +43,10 @@ namespace Identity.Controllers
         {
             if (!_signInManager.IsSignedIn(HttpContext.User))
                 return View();
-            var user = await _userManager.GetUserAsync(HttpContext.User);
-            var fixedUser = _context.Users.Include(u => u.Repos).First(u => String.Equals(u.Id, user.Id));
+            var user = await GetCurrentUserWithRepos();
             /*fixedUser.ShaUploaded = true;
             _context.SaveChanges();*/
-            return View(fixedUser);
+            return View(user);
         }
 
         public async Task<IActionResult> ClearRepos()
@@ -63,7 +62,7 @@ namespace Identity.Controllers
         public async Task<IActionResult> RepoView(string userName, string repoName, string branch, string path)
         {
             var repo =
-                _context.Repos.Include(r => r.Author)
+                _context.Repos.Include(r => r.Author).Include(r => r.AllowedUser)
                     .First(
                         r =>
                             String.Equals(r.RepoName.ToLower(), repoName.ToLower()) &&
@@ -84,7 +83,7 @@ namespace Identity.Controllers
                 RepoRootPath = $"/{userName}/{repoName}",
                 InnerFolders = new List<string>(),
                 InnerFiles = new List<string>(),
-                Path = new List<string>(new[] { userName, repoName }),
+                Path = new List<string>(new[] {userName, repoName}),
                 Branches = branches,
                 CurrentBranchIndex = branches.IndexOf(branch)
             };
@@ -118,21 +117,22 @@ namespace Identity.Controllers
         public async Task<IActionResult> RepoInfo(string userName, string repoName, string branch, string path)
         {
             var repo =
-               _context.Repos.Include(r => r.Author)
-                   .FirstOrDefault(
-                       r =>
-                           String.Equals(r.RepoName.ToLower(), repoName.ToLower()) &&
-                           String.Equals(r.Author.UserName.ToLower(), userName.ToLower()));
+                _context.Repos.Include(r => r.Author).Include(r => r.AllowedUser)
+                    .FirstOrDefault(
+                        r =>
+                            String.Equals(r.RepoName.ToLower(), repoName.ToLower()) &&
+                            String.Equals(r.Author.UserName.ToLower(), userName.ToLower()));
             if (repo == null)
                 return StatusCode(404);
             var user = await _userManager.GetUserAsync(HttpContext.User);
             if (!repo.CheckAccess(user))
                 return StatusCode(403);
-            var branches = _gitService.UpdateLocalRepo(_environment, $"{userName.ToLower()}-{repoName.ToLower()}", branch);
+            var branches = _gitService.UpdateLocalRepo(_environment, $"{userName.ToLower()}-{repoName.ToLower()}",
+                branch);
             var model = new RepoInfoViewModel
             {
                 RepoRootPath = $"/{userName}/{repoName}",
-                Path = new List<string>(new[] { userName, repoName }),
+                Path = new List<string>(new[] {userName, repoName}),
                 RepoUri = $"{_gitService.GitServer}:{userName.ToLower()}-{repoName.ToLower()}",
                 Branches = branches,
                 CurrentBranchIndex = branches.IndexOf(branch),
@@ -158,17 +158,39 @@ namespace Identity.Controllers
         public async Task<IActionResult> AddNewRepo(AddNewRepoViewModel model)
         {
             ViewData["Success"] = "Repository was successfully created";
+            var user = await GetCurrentUserWithRepos();
+            GitRepo.AddRepo(_context, _environment, _gitService, user, model.RepoName, model.IsPublic);
+            return RedirectToAction("Index");
+        }
+
+        [HttpGet]
+        [Authorize]
+        public IActionResult AddColaborator()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddColaborator(AddColaboratorViewModel model)
+        {
             var user = await _userManager.GetUserAsync(HttpContext.User);
-            var fixedUser = _context.Users.Include(u => u.Repos).First(u => String.Equals(u.Id, user.Id));
-            GitRepo.AddRepo(_context, _environment, _gitService, fixedUser, model.RepoName, model.IsPublic);
+            var colaborator =
+                _context.Users.FirstOrDefault(u => String.Equals(u.NormalizedUserName, model.ColaboratorName.ToUpper()));
+            var repo = _context.Repos.Include(r => r.Author)
+                .Include(r => r.AllowedUser)
+                .FirstOrDefault(r => String.Equals(r.RepoName, model.RepositoryName) &&
+                                     String.Equals(r.Author.NormalizedUserName, user.NormalizedUserName));
+            repo.AllowedUser.Add(colaborator);
+            await _context.SaveChangesAsync();
             return RedirectToAction("Index");
         }
 
         public async Task<IActionResult> Profile(string userName)
         {
             var model = new ProfileViewModel();
-            var user =
-                _context.Users.Include(u => u.Repos).FirstOrDefault(u => String.Equals(u.UserName.ToLower(), userName.ToLower()));
+            var user = await GetCurrentUserWithRepos();
             if (user == null)
                 return new StatusCodeResult(404);
             model.UserName = userName;
@@ -179,7 +201,7 @@ namespace Identity.Controllers
         public async Task<IActionResult> ViewFile(string userName, string repoName, string branch, string path)
         {
             var repo =
-                _context.Repos.Include(r => r.Author)
+                _context.Repos.Include(r => r.Author).Include(r => r.AllowedUser)
                     .FirstOrDefault(
                         r =>
                             String.Equals(r.RepoName.ToLower(), repoName.ToLower()) &&
@@ -197,7 +219,7 @@ namespace Identity.Controllers
             var model = new ViewFileViewModel
             {
                 RepoRootPath = $"/{userName}/{repoName}",
-                Path = new List<string>(new[] { userName, repoName }),
+                Path = new List<string>(new[] {userName, repoName}),
                 Branches = branches,
                 CurrentBranchIndex = branches.IndexOf(branch)
             };
@@ -216,10 +238,10 @@ namespace Identity.Controllers
 
         public async Task<IActionResult> CommitInfo(string userName, string repoName, string branch, string hash)
         {
-            if(hash.Length!=40)
+            if (hash.Length != 40)
                 return StatusCode(404);
             var repo =
-                _context.Repos.Include(r => r.Author)
+                _context.Repos.Include(r => r.Author).Include(r => r.AllowedUser)
                     .FirstOrDefault(
                         r =>
                             String.Equals(r.RepoName.ToLower(), repoName.ToLower()) &&
@@ -244,7 +266,7 @@ namespace Identity.Controllers
             {
                 Changes = changes,
                 RepoRootPath = $"/{userName}/{repoName}",
-                Path = new List<string>(new[] { userName, repoName }),
+                Path = new List<string>(new[] {userName, repoName}),
                 Branches = branches,
                 CurrentBranchIndex = branches.IndexOf(branch)
             };
@@ -254,7 +276,7 @@ namespace Identity.Controllers
         public async Task<IActionResult> CommitHistory(string userName, string repoName, string branch, string path)
         {
             var repo =
-                _context.Repos.Include(r => r.Author)
+                _context.Repos.Include(r => r.Author).Include(r => r.AllowedUser)
                     .FirstOrDefault(
                         r =>
                             String.Equals(r.RepoName.ToLower(), repoName.ToLower()) &&
@@ -271,7 +293,6 @@ namespace Identity.Controllers
             {
                 hisrory = _gitService.GetRepoCommitHistory(_environment, fullRepoName);
             }
-//Todo: implement 703 error
             catch (Exception ex)
             {
                 return RedirectToRoute("Error", new {id = 703});
@@ -280,7 +301,7 @@ namespace Identity.Controllers
             {
                 Commits = hisrory,
                 RepoRootPath = $"/{userName}/{repoName}",
-                Path = new List<string>(new[] { userName, repoName }),
+                Path = new List<string>(new[] {userName, repoName}),
                 Branches = branches,
                 CurrentBranchIndex = branches.IndexOf(branch)
             };
@@ -305,6 +326,23 @@ namespace Identity.Controllers
             if (bom[0] == 0xfe && bom[1] == 0xff) return Encoding.BigEndianUnicode; //UTF-16BE
             if (bom[0] == 0 && bom[1] == 0 && bom[2] == 0xfe && bom[3] == 0xff) return Encoding.UTF32;
             return Encoding.ASCII;
+        }
+
+        private async Task<ApplicationUser> GetCurrentUserWithRepos()
+        {
+            var user = await _userManager.GetUserAsync(HttpContext.User);
+            try
+            {
+                return _context.Users.Include(u => u.Repos).First(u => String.Equals(u.Id, user.Id));
+            }
+            catch (Exception)
+            {
+                if (user == null)
+                    return null;
+                user.Repos = new List<GitRepo>();
+                return user;
+            }
+            return null;
         }
 
         #endregion
