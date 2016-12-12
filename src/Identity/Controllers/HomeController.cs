@@ -190,7 +190,8 @@ namespace Identity.Controllers
         public async Task<IActionResult> Profile(string userName)
         {
             var model = new ProfileViewModel();
-            var user = await GetCurrentUserWithRepos();
+//Todo: fix
+            var user = _context.Users.Include(u => u.Repos).FirstOrDefault(u => String.Equals(u.UserName.ToLower(), userName.ToLower()));
             if (user == null)
                 return new StatusCodeResult(404);
             model.UserName = userName;
