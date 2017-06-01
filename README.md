@@ -1,6 +1,6 @@
 # Identity
-Asp.Net Core git server
-#To install:
+Asp.Net Core git server 
+# To install:
 1. Create git user
 2. Install gitolite for git user
 3. Configure gitolite
